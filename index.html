@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>by2891 — Jordan DeLaforgue</title>
+<meta name="description" content="Jordan DeLaforgue: Chicago web design and development, mixes, and a blog.">
+<meta name="theme-color" content="#13202b">
+<link rel="icon" href="img/logo-B-white.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&display=swap">
+<style>
+:root{
+  --bg:#13202b; --surface:#1b2c3a; --line:#2a4051; --text:#e6ecef; --muted:#93a7b5;
+  --accent:#f0b03a; --on-accent:#13202b;
+  --measure:40rem; --gutter:clamp(1rem,4vw,3rem);
+  --player-h:0px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#eef2f4; --surface:#e1e9ee; --line:#c4d2db; --text:#13202b; --muted:#4b6171;
+    --accent:#9a6400; --on-accent:#fff; color-scheme:light;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:"Bricolage Grotesque",system-ui,sans-serif;
+  font-variation-settings:"opsz" 14; font-size:1.0625rem; line-height:1.6;
+  padding-bottom:var(--player-h);
+}
+a{color:inherit; text-decoration-color:var(--accent); text-decoration-thickness:2px; text-underline-offset:3px}
+a:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px; border-radius:2px}
+img{max-width:100%; height:auto; display:block}
+button{font:inherit; color:inherit}
+h1,h2,h3{line-height:1.1; font-variation-settings:"opsz" 72; font-weight:700; margin:0}
+h1:focus,h2:focus{outline:none}
+
+/* header */
+.top{
+  position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:.85rem var(--gutter); background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.mark{font-weight:800; font-variation-settings:"opsz" 48,"wdth" 75; font-size:1.35rem; letter-spacing:-.02em; text-decoration:none}
+.nav{display:flex; gap:clamp(.75rem,2.5vw,1.75rem); overflow-x:auto; scrollbar-width:none}
+.nav a{text-decoration:none; color:var(--muted); padding:.25rem 0; white-space:nowrap; border-bottom:2px solid transparent}
+.nav a:hover{color:var(--text)}
+.nav a[aria-current="page"]{color:var(--text); border-bottom-color:var(--accent)}
+@media (max-width:30rem){.nav a[href="#home"]{display:none} .nav{gap:.9rem} .nav a{font-size:.98rem}}
+@media (max-width:52rem){.music-head img{max-height:14rem; width:100%; object-fit:cover}}
+
+main{padding:0 var(--gutter)}
+.view{max-width:62rem; margin:0 auto; padding:clamp(2.5rem,7vw,5rem) 0 5rem}
+.view[hidden]{display:none}
+.prose{max-width:var(--measure)}
+.prose p{margin:0 0 1.1em}
+.lede{font-size:1.25rem; color:var(--muted); max-width:var(--measure); margin:.75rem 0 2.5rem}
+.page-title{font-size:clamp(2.5rem,7vw,4rem); font-variation-settings:"opsz" 96,"wdth" 80; letter-spacing:-.02em}
+
+/* hero */
+.hero{display:grid; gap:1.5rem; margin-bottom:clamp(3rem,8vw,6rem)}
+.digits{
+  margin:0; font-weight:800; font-variation-settings:"opsz" 96,"wdth" 75;
+  font-size:clamp(7rem,31vw,22rem); line-height:.78; letter-spacing:-.045em;
+  display:flex; align-items:flex-start; gap:.08em;
+}
+.digits small{font-size:.22em; font-weight:400; letter-spacing:0; line-height:1; padding-top:.35em; color:var(--muted); font-variation-settings:"opsz" 48,"wdth" 100}
+.digits span{display:inline-block; animation:drop .7s cubic-bezier(.2,.8,.2,1) both}
+.digits span:nth-of-type(2){animation-delay:.06s}
+.digits span:nth-of-type(3){animation-delay:.12s}
+.digits span:nth-of-type(4){animation-delay:.18s}
+@keyframes drop{from{transform:translateY(-.15em); opacity:0}}
+.hero-meta{display:flex; flex-wrap:wrap; justify-content:space-between; gap:1rem 3rem; align-items:end; border-top:1px solid var(--line); padding-top:1.25rem}
+.hero-meta h1{font-size:clamp(1.6rem,3.5vw,2.25rem)}
+.hero-meta p{margin:.25rem 0 0; color:var(--muted)}
+.hero-meta .namesake{font-size:.95rem; text-align:right}
+
+.split{display:grid; gap:3rem}
+@media (min-width:52rem){.split{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr); gap:5rem}}
+.split h2{font-size:1.5rem; margin-bottom:1rem}
+.btn{
+  display:inline-flex; align-items:center; gap:.5rem; padding:.6rem 1.1rem; border-radius:999px;
+  background:var(--accent); color:var(--on-accent); text-decoration:none; font-weight:600; border:0; cursor:pointer;
+}
+.btn:hover{color:var(--on-accent); filter:brightness(1.08)}
+.btn.ghost{background:transparent; color:var(--text); box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.ghost:hover{color:var(--text); box-shadow:inset 0 0 0 1.5px var(--accent)}
+.row{display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.5rem}
+
+/* post lists */
+.posts{list-style:none; margin:0; padding:0}
+.posts li{border-top:1px solid var(--line)}
+.posts li:last-child{border-bottom:1px solid var(--line)}
+.posts a{display:grid; gap:.2rem; padding:1.1rem 0; text-decoration:none}
+.posts a:hover h3{color:var(--accent)}
+.posts h3{font-size:1.25rem; font-variation-settings:"opsz" 36}
+.posts time{color:var(--muted); font-size:.9rem; font-variant-numeric:tabular-nums}
+.posts p{margin:0; color:var(--muted)}
+.empty{color:var(--muted)}
+
+/* work */
+.projects{display:grid; gap:4rem}
+.project{display:grid; gap:1.5rem}
+@media (min-width:52rem){.project{grid-template-columns:1.1fr 1fr; gap:3rem; align-items:start}}
+.project img{border-radius:6px; border:1px solid var(--line); background:var(--surface); aspect-ratio:16/10; object-fit:cover; object-position:top; width:100%}
+.project h2{font-size:clamp(1.75rem,4vw,2.5rem); font-variation-settings:"opsz" 72,"wdth" 85}
+.project p{margin:.75rem 0}
+.stack{color:var(--muted); font-size:.95rem}
+
+/* music */
+.music-head{display:grid; gap:2rem; margin-bottom:2.5rem}
+@media (min-width:52rem){.music-head{grid-template-columns:1fr 1fr; align-items:end}}
+.music-head img{border-radius:6px; background:var(--surface)}
+.warn{display:inline-block; margin:0; padding:.4rem .75rem; border-radius:4px; background:var(--surface); color:var(--muted); font-size:.92rem}
+.tracks{list-style:none; margin:0; padding:0; counter-reset:t}
+.tracks li{counter-increment:t; border-top:1px solid var(--line)}
+.tracks li:last-child{border-bottom:1px solid var(--line)}
+.track{
+  width:100%; display:grid; grid-template-columns:2.25rem 1fr auto; gap:1rem; align-items:center;
+  padding:1rem .25rem; background:none; border:0; text-align:left; cursor:pointer;
+}
+.track::before{content:counter(t,decimal-leading-zero); color:var(--muted); font-variant-numeric:tabular-nums; font-size:.95rem}
+.track:hover .t-title{color:var(--accent)}
+.t-title{display:block; font-weight:600; font-size:1.1rem; font-variation-settings:"opsz" 24}
+.t-artist{display:block; color:var(--muted); font-size:.95rem}
+.t-state{width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:50%; box-shadow:inset 0 0 0 1.5px var(--line)}
+.t-state svg{width:14px; height:14px; fill:currentColor}
+.track[aria-current="true"] .t-title{color:var(--accent)}
+.track[aria-current="true"]::before{color:var(--accent)}
+.track[aria-current="true"] .t-state{background:var(--accent); color:var(--on-accent); box-shadow:none}
+.dl{font-size:.9rem; color:var(--muted)}
+
+/* article */
+.article{max-width:var(--measure)}
+.article .back{display:inline-block; margin-bottom:2rem; color:var(--muted); text-decoration:none}
+.article .back:hover{color:var(--accent)}
+.article h1{font-size:clamp(2.25rem,6vw,3.5rem); font-variation-settings:"opsz" 96,"wdth" 85; letter-spacing:-.015em}
+.article .meta{color:var(--muted); margin:.75rem 0 2.5rem; font-variant-numeric:tabular-nums}
+.post-body{font-size:1.125rem; line-height:1.7}
+.post-body h2{font-size:1.6rem; margin:2.5rem 0 .75rem}
+.post-body h3{font-size:1.25rem; margin:2rem 0 .5rem}
+.post-body p,.post-body ul,.post-body ol{margin:0 0 1.2em}
+.post-body img{border-radius:6px; margin:2rem 0}
+.post-body blockquote{margin:2rem 0; padding-left:1.25rem; border-left:3px solid var(--accent); color:var(--muted)}
+.post-body pre{background:var(--surface); padding:1rem; border-radius:6px; overflow-x:auto; font-size:.9rem}
+.post-body code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.9em}
+
+/* resume */
+.resume{display:grid; gap:2.5rem; max-width:48rem}
+.resume-head{display:flex; gap:1.5rem; align-items:center}
+.resume-head img{width:6rem; height:6rem; border-radius:50%; object-fit:cover; background:var(--surface)}
+.resume h2{font-size:1.25rem; margin-bottom:1rem; padding-bottom:.5rem; border-bottom:1px solid var(--line)}
+.entry{display:grid; gap:.15rem; margin-bottom:1.5rem}
+@media (min-width:40rem){.entry{grid-template-columns:8rem 1fr; gap:1.5rem}}
+.entry .when{color:var(--muted); font-variant-numeric:tabular-nums}
+.entry h3{font-size:1.1rem; font-variation-settings:"opsz" 24}
+.entry p{margin:.15rem 0 0; color:var(--muted)}
+.entry ul{margin:.5rem 0 0; padding-left:1.1rem}
+
+footer{max-width:62rem; margin:0 auto; padding:2rem var(--gutter) 3rem; color:var(--muted); font-size:.92rem; display:flex; flex-wrap:wrap; gap:1rem 2rem; justify-content:space-between}
+
+/* player */
+.player{
+  position:fixed; inset:auto 0 0 0; z-index:20; background:var(--surface); border-top:1px solid var(--line);
+  padding:.65rem var(--gutter) calc(.65rem + env(safe-area-inset-bottom));
+  display:grid; grid-template-columns:auto 1fr auto; gap:.5rem 1rem; align-items:center;
+  transform:translateY(0); transition:transform .3s ease;
+}
+.player[hidden]{display:grid; transform:translateY(110%); visibility:hidden}
+.p-btns{display:flex; gap:.25rem; align-items:center}
+.p-btn{width:2.5rem; height:2.5rem; display:grid; place-items:center; border:0; background:none; border-radius:50%; cursor:pointer}
+.p-btn svg{width:18px; height:18px; fill:currentColor}
+.p-btn.main{background:var(--accent); color:var(--on-accent); width:2.75rem; height:2.75rem}
+.p-info{min-width:0}
+.p-title{font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; text-decoration:none}
+.p-artist{color:var(--muted); font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block}
+.p-time{color:var(--muted); font-size:.85rem; font-variant-numeric:tabular-nums; white-space:nowrap}
+.p-seek{grid-column:1 / -1; width:100%; margin:0; accent-color:var(--accent); height:1rem}
+@media (min-width:52rem){
+  .player{grid-template-columns:auto minmax(10rem,18rem) 1fr auto}
+  .p-seek{grid-column:auto; order:3}
+  .p-time{order:4}
+}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="sr" href="#main">Skip to content</a>
+
+<header class="top">
+  <a class="mark" href="#home" aria-label="by2891 home">by2891</a>
+  <nav class="nav" aria-label="Main">
+    <a href="#home">Home</a>
+    <a href="#work">Work</a>
+    <a href="#music">Music</a>
+    <a href="#blog">Blog</a>
+    <a href="#resume">Résumé</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- HOME -->
+  <section class="view" data-view="home" aria-labelledby="h-home">
+    <div class="hero">
+      <p class="digits" aria-hidden="true"><small>by</small><span>2</span><span>8</span><span>9</span><span>1</span></p>
+      <div class="hero-meta">
+        <div>
+          <h1 id="h-home" tabindex="-1">Jordan DeLaforgue</h1>
+          <p>Web design and development in Chicago, plus the music I make in my spare time.</p>
+        </div>
+        <p class="namesake">Named for February 8, 1991.</p>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="prose">
+        <h2>About me</h2>
+        <p>My name is Jordan DeLaforgue (that's pronounced Dell-uh-forg), and I'm a web developer. Since 2016 I've spent most every day experimenting with HTML, CSS, JavaScript, Python and Java, and I use them to design and develop websites.</p>
+        <p>I was born and raised on Chicago's north side and graduated from Lane Tech in 2009 ("OH-NINE!" if you know, you know), where I met my wife Paloma. Today we're raising our son Ezekiel, born in 2019, here in the city.</p>
+        <p>I started by2891 LLC shortly after he was born, to put my skills toward a better community around my family. Public servants, teachers, community leaders and local independent artists are the clients I'm most proud to work with, and I'm open to projects aligned with those interests.</p>
+        <div class="row">
+          <a class="btn" href="mailto:JDeLaforgue@gmail.com">Email me</a>
+          <a class="btn ghost" href="#resume">View résumé</a>
+        </div>
+      </div>
+      <div>
+        <h2>Latest from the blog</h2>
+        <ul class="posts" data-latest><li class="empty">Loading posts…</li></ul>
+        <div class="row"><a class="btn ghost" href="#blog">All posts</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WORK -->
+  <section class="view" data-view="work" aria-labelledby="h-work" hidden>
+    <h1 class="page-title" id="h-work" tabindex="-1">Work</h1>
+    <p class="lede">Sites I've designed and built, mostly for teachers, community leaders and independent artists.</p>
+    <div class="projects">
+      <article class="project">
+        <a href="https://mrsporte.com" target="_blank" rel="noopener"><img src="img/website-images/mrsporte.png" alt="Screenshot of mrsporte.com" loading="lazy" width="1200" height="750"></a>
+        <div>
+          <h2>mrsporte.com</h2>
+          <p>A site for Mrs. Porte, a 4th grade teacher at Lloyd Elementary in Chicago, built as a bridge between students' homes and the classroom. Designed for speed, simplicity and accessibility, with built-in translation and full ADA compliance.</p>
+          <p class="stack">HTML5, CSS, JavaScript, jQuery, Bootstrap 4</p>
+          <a class="btn ghost" href="https://mrsporte.com" target="_blank" rel="noopener">Visit site</a>
+        </div>
+      </article>
+      <article class="project">
+        <a href="http://rocmarcianomusic.com" target="_blank" rel="noopener"><img src="img/website-images/rocmarci.png" alt="Screenshot of the Roc Marciano site" loading="lazy" width="1200" height="750"></a>
+        <div>
+          <h2>Roc Marciano</h2>
+          <p>Designed and built from scratch for the rapper Roc Marciano. Mostly vanilla JavaScript for a smooth, minimal experience, with clear headers and a simple palette that reflects his music. Music, shop and social links are front and center, and a discography grid links out to stream or buy each release.</p>
+          <p class="stack">HTML5, CSS, JavaScript, jQuery, Bootstrap 4. Shop is demo only.</p>
+          <a class="btn ghost" href="http://rocmarcianomusic.com" target="_blank" rel="noopener">Visit site</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- MUSIC -->
+  <section class="view" data-view="music" aria-labelledby="h-music" hidden>
+    <div class="music-head">
+      <div>
+        <h1 class="page-title" id="h-music" tabindex="-1">Music</h1>
+        <p class="lede">Mixes and edits I make in my spare time. Hit play and keep browsing; the music follows you around the site.</p>
+        <p class="warn">Explicit content: lots of bad words in some of these songs.</p>
+      </div>
+      <img src="image/tt_case_and_lighting.png" alt="Turntable case under studio lighting" loading="lazy" width="900" height="600">
+    </div>
+    <ol class="tracks" data-tracks>
+      <li><button class="track" data-src="music/jan8mix.mp3" data-title="Jan 8 Full Mix" data-artist="8th of February"></button></li>
+      <li><button class="track" data-src="music/dec24.mp3" data-title="December 24 (Feb Mix)" data-artist="Earl Sweatshirt"></button></li>
+      <li><button class="track" data-src="music/thuggin.mp3" data-title="Thuggin (Feb Mix)" data-artist="Freddie Gibbs"></button></li>
+      <li><button class="track" data-src="music/bomb.mp3" data-title="Bomb (Feb Mix)" data-artist="Freddie Gibbs ft. Raekwon"></button></li>
+      <li><button class="track" data-src="music/no-problem.mp3" data-title="No Problem (Feb Mix)" data-artist="Lil Scrappy"></button></li>
+      <li><button class="track" data-src="music/slumber.mp3" data-title="Slumber (Feb Mix)" data-artist="Guapo Miguel"></button></li>
+      <li><button class="track" data-src="music/star.mp3" data-title="Star (Feb Mix)" data-artist="Brockhampton"></button></li>
+      <li><button class="track" data-src="music/emmanuel.mp3" data-title="Emmanuel (Feb Mix)" data-artist="Ameer Vann"></button></li>
+      <li><button class="track" data-src="music/robes.mp3" data-title="Robes (Feb Mix)" data-artist="Freddie Gibbs ft. Earl Sweatshirt"></button></li>
+    </ol>
+  </section>
+
+  <!-- BLOG -->
+  <section class="view" data-view="blog" aria-labelledby="h-blog" hidden>
+    <h1 class="page-title" id="h-blog" tabindex="-1">Blog</h1>
+    <p class="lede">Notes on building for the web, making music, and Chicago.</p>
+    <ul class="posts" data-all><li class="empty">Loading posts…</li></ul>
+  </section>
+
+  <!-- POST -->
+  <section class="view" data-view="post" aria-labelledby="h-post" hidden>
+    <article class="article">
+      <a class="back" href="#blog">All posts</a>
+      <h1 id="h-post" tabindex="-1" data-post-title></h1>
+      <p class="meta" data-post-meta></p>
+      <div class="post-body" data-post-body></div>
+    </article>
+  </section>
+
+  <!-- RESUME -->
+  <section class="view" data-view="resume" aria-labelledby="h-resume" hidden>
+    <div class="resume">
+      <div class="resume-head">
+        <img src="img/resume-photo.jpg" alt="Jordan DeLaforgue" loading="lazy" width="192" height="192">
+        <div>
+          <h1 class="page-title" id="h-resume" tabindex="-1">Résumé</h1>
+          <p style="margin:.25rem 0 0;color:var(--muted)">Web developer in Chicago. <a href="mailto:JDeLaforgue@gmail.com">JDeLaforgue@gmail.com</a>, <a href="https://github.com/jdelaforgue" target="_blank" rel="noopener">GitHub</a></p>
+        </div>
+      </div>
+
+      <div class="prose">
+        <h2>About</h2>
+        <p>A highly adaptable and creative professional. An excellent communicator with a solid foundation in web design, database development and programming.</p>
+        <p><strong>Skills:</strong> HTML and CSS, JavaScript, Ruby on Rails, Java, MySQL</p>
+      </div>
+
+      <div>
+        <h2>Experience</h2>
+        <div class="entry"><span class="when">2020–now</span><div>
+          <h3>Associate Support Representative, Braze</h3>
+          <ul>
+            <li>Prioritize, troubleshoot and plan responses for complex customer issues on the Braze platform.</li>
+            <li>Help customers quickly overcome technical issues.</li>
+            <li>Contribute regularly to the Braze knowledge base.</li>
+          </ul></div></div>
+        <div class="entry"><span class="when">2019–now</span><div>
+          <h3>Web Developer, by2891 LLC</h3>
+          <ul>
+            <li>Write well-designed, testable, efficient code.</li>
+            <li>Work with clients to gather and refine requirements.</li>
+            <li>Build layouts and interfaces with standard HTML and CSS practices.</li>
+          </ul></div></div>
+        <div class="entry"><span class="when">2015–2019</span><div>
+          <h3>Shift Supervisor, Starbucks</h3>
+          <ul>
+            <li>Directed and supervised staff across sales, inventory, cash and service.</li>
+            <li>Kept the store running smoothly and customers well served.</li>
+            <li>Enforced safety, health and security rules.</li>
+          </ul></div></div>
+      </div>
+
+      <div>
+        <h2>Projects</h2>
+        <div class="entry"><span class="when">2020</span><div><h3><a href="https://rocmarcianomusic.com" target="_blank" rel="noopener">rocmarcianomusic.com</a></h3><p>Vanilla HTML, CSS and JavaScript site for independent Long Island rapper Roc Marciano.</p></div></div>
+        <div class="entry"><span class="when">2019</span><div><h3><a href="#home">by2891.com</a></h3><p>This site: portfolio, mixes and blog.</p></div></div>
+        <div class="entry"><span class="when">2016</span><div><h3><a href="https://mrsporte.com" target="_blank" rel="noopener">mrsporte.com</a></h3><p>Connects parents and students to Mrs. Porte's 4th grade classroom from home.</p></div></div>
+      </div>
+
+      <div>
+        <h2>Education</h2>
+        <div class="entry"><span class="when">2011–2012</span><div><h3>Audio Design &amp; Production</h3><p>Columbia College, Chicago</p></div></div>
+        <div class="entry"><span class="when">2009–2011</span><div><h3>Communications</h3><p>Northern Illinois University, DeKalb</p></div></div>
+        <div class="entry"><span class="when">2005–2009</span><div><h3>Lane Tech High School</h3><p>Chicago</p></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© <span data-year>2026</span> by2891 LLC, Chicago</span>
+  <span><a href="mailto:JDeLaforgue@gmail.com">Email</a> &nbsp; <a href="https://github.com/jdelaforgue" target="_blank" rel="noopener">GitHub</a></span>
+</footer>
+
+<!-- Persistent player: lives outside every view, so navigating never interrupts it -->
+<div class="player" data-player hidden aria-label="Music player" role="region">
+  <div class="p-btns">
+    <button class="p-btn" data-prev aria-label="Previous track"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+    <button class="p-btn main" data-toggle aria-label="Play"><svg viewBox="0 0 24 24" data-icon><path d="M7 4v16l13-8z"/></svg></button>
+    <button class="p-btn" data-next aria-label="Next track"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
+  </div>
+  <div class="p-info">
+    <a class="p-title" href="#music" data-p-title>—</a>
+    <span class="p-artist" data-p-artist></span>
+  </div>
+  <input class="p-seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek" data-seek>
+  <span class="p-time"><span data-cur>0:00</span> / <span data-dur>0:00</span></span>
+</div>
+<audio data-audio preload="none"></audio>
+</body>
+</html>
