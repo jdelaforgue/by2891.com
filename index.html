@@ -14,8 +14,11 @@
 /* Layout: one black stage, a square card that flips, a nav row, and a player row that grows from 0 */
 :root{
   --black:#000;
-  --raise:#0d0d0d;          /* neumorphic button surface */
+  --raise:#0d0d0d;          /* player surface */
+  --btn:#2b2b2b;            /* neumorphic button surface */
+  --btn-text:#cfcfcf;
   --hi:rgba(255,255,255,.07);/* top-left highlight */
+  --btn-hi:rgba(255,255,255,.14);
   --lo:rgba(0,0,0,1);        /* bottom-right shade */
   --text:#ededed;
   --muted:#8a8a8a;
@@ -39,13 +42,13 @@ button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; -
 .top{height:3.5rem; padding:0 max(16px,env(safe-area-inset-left,0px)); display:flex; align-items:center}
 .back{
   display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .8rem .45rem .6rem; border-radius:999px;
-  font-size:.9rem; color:var(--muted); background:var(--raise);
-  box-shadow:-3px -3px 7px var(--hi), 3px 3px 7px var(--lo);
+  font-size:.9rem; color:var(--btn-text); background:var(--btn);
+  box-shadow:-3px -3px 7px var(--btn-hi), 3px 3px 7px var(--lo);
   opacity:0; transform:translateX(-6px); pointer-events:none; transition:opacity .35s, transform .35s, color .2s;
 }
 .back svg{width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
-.back:hover{color:var(--text)}
-.back:active{box-shadow:inset 2px 2px 5px var(--lo), inset -2px -2px 5px var(--hi)}
+.back:hover{color:#fff}
+.back:active{box-shadow:inset 2px 2px 5px rgba(0,0,0,.6), inset -2px -2px 5px var(--btn-hi)}
 body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:auto}
 
 /* stage + flip card */
@@ -88,7 +91,8 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 @keyframes eq{0%,100%{height:3px}50%{height:12px}}
 .track[aria-current="true"].playing .eq{display:inline-flex}
 .track[aria-current="true"].playing .t-dur{display:none}
-.warn{font-size:.8rem; color:var(--muted); margin:0 0 .75rem}
+.x{display:inline-grid; place-items:center; width:1.05em; height:1.05em; margin-left:.45em; vertical-align:.08em;
+  border-radius:.18em; background:#8f8f8f; color:#000; font-size:.68em; font-weight:700; line-height:1; font-variation-settings:"opsz" 12}
 
 /* neumorphic nav */
 .nav{
@@ -97,16 +101,16 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
   padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
 }
 .nb{
-  height:3.25rem; border-radius:999px; background:var(--raise); color:var(--muted);
+  height:3.25rem; border-radius:999px; background:var(--btn); color:var(--btn-text);
   font-size:clamp(.9rem,2.6vw,1rem); font-weight:500; letter-spacing:.01em; white-space:nowrap;
-  box-shadow:-5px -5px 12px var(--hi), 5px 5px 12px var(--lo), inset 0 0 0 1px rgba(255,255,255,.025);
+  box-shadow:-5px -5px 12px var(--btn-hi), 5px 5px 12px var(--lo), inset 0 1px 0 rgba(255,255,255,.06);
   transition:box-shadow .25s, color .25s, transform .15s;
 }
-.nb:hover{color:var(--text)}
+.nb:hover{color:#fff}
 .nb:active{transform:scale(.98)}
 .nb[aria-current="true"]{
-  color:#fff;
-  box-shadow:inset 4px 4px 9px var(--lo), inset -4px -4px 9px var(--hi);
+  color:#fff; background:#232323;
+  box-shadow:inset 4px 4px 9px rgba(0,0,0,.65), inset -4px -4px 9px var(--btn-hi);
 }
 
 /* mini player: grid row that grows from 0, pushing the nav up */
@@ -123,8 +127,8 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .pb{width:2.25rem; height:2.25rem; border-radius:50%; display:grid; place-items:center; color:var(--muted)}
 .pb:hover{color:var(--text)}
 .pb svg{width:16px; height:16px; fill:currentColor}
-.pb.main{width:2.6rem; height:2.6rem; color:var(--text); box-shadow:-3px -3px 7px var(--hi), 3px 3px 7px var(--lo)}
-.pb.main:active{box-shadow:inset 2px 2px 5px var(--lo), inset -2px -2px 5px var(--hi)}
+.pb.main{width:2.6rem; height:2.6rem; color:#fff; background:var(--btn); box-shadow:-3px -3px 7px var(--btn-hi), 3px 3px 7px var(--lo)}
+.pb.main:active{box-shadow:inset 2px 2px 5px rgba(0,0,0,.65), inset -2px -2px 5px var(--btn-hi)}
 .pinfo{min-width:0}
 .ptitle{display:block; font-size:.95rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .partist{display:block; font-size:.8rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -166,7 +170,6 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
       <div class="face backface" aria-live="polite">
         <section class="panel" data-panel="music" aria-label="Music">
           <h2>Music</h2>
-          <p class="warn">Explicit content.</p>
           <ol class="tracks" data-tracks></ol>
         </section>
 
@@ -207,13 +210,13 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 
 <script>
 (() => {
-  /* Tracklist. Add a line here when you upload a new MP3 to /music. */
+  /* Tracklist. Add a line here when you upload a new MP3 to /music. explicit: true shows the E badge. */
   const TRACKS = [
-    { src: 'music/dec24.mp3',      title: 'December 24 (Feb Mix)', artist: 'Earl Sweatshirt' },
-    { src: 'music/bomb.mp3',       title: 'Bomb (Feb Mix)',        artist: 'Freddie Gibbs ft. Raekwon' },
-    { src: 'music/no-problem.mp3', title: 'No Problem (Feb Mix)',  artist: 'Lil Scrappy' },
-    { src: 'music/emmanuel.mp3',   title: 'Emmanuel (Feb Mix)',    artist: 'Ameer Vann' },
-    { src: 'music/robes.mp3',      title: 'Robes (Feb Mix)',       artist: 'Freddie Gibbs ft. Earl Sweatshirt' },
+    { src: 'music/dec24.mp3',      title: 'December 24 (Feb Mix)', artist: 'Earl Sweatshirt', explicit: true },
+    { src: 'music/bomb.mp3',       title: 'Bomb (Feb Mix)',        artist: 'Freddie Gibbs ft. Raekwon', explicit: true },
+    { src: 'music/no-problem.mp3', title: 'No Problem (Feb Mix)',  artist: 'Lil Scrappy', explicit: true },
+    { src: 'music/emmanuel.mp3',   title: 'Emmanuel (Feb Mix)',    artist: 'Ameer Vann', explicit: true },
+    { src: 'music/robes.mp3',      title: 'Robes (Feb Mix)',       artist: 'Freddie Gibbs ft. Earl Sweatshirt', explicit: true },
   ];
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -263,12 +266,12 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
   const list = $('[data-tracks]');
   list.innerHTML = TRACKS.map((t, i) => `
     <li><button class="track" data-i="${i}">
-      <span><span class="t-title"></span><span class="t-artist"></span></span>
+      <span><span class="t-title"><span class="t-name"></span>${t.explicit ? '<span class="x" title="Explicit" aria-label="Explicit">E</span>' : ''}</span><span class="t-artist"></span></span>
       <span><span class="t-dur"></span><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span></span>
     </button></li>`).join('');
   const btns = $$('.track', list);
   btns.forEach((b, i) => {
-    $('.t-title', b).textContent = TRACKS[i].title;
+    $('.t-name', b).textContent = TRACKS[i].title;
     $('.t-artist', b).textContent = TRACKS[i].artist;
     b.addEventListener('click', () => (i === idx ? toggle() : play(i)));
     // fetch durations lazily (metadata only)
