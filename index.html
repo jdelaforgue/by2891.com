@@ -11,7 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..700&display=swap">
 <style>
-/* Layout: one black stage, a square card that flips, a nav row, and a player row that grows from 0 */
+/* Layout: one black stage, a square that crossfades from portrait to a framed panel over a blurred portrait backdrop,
+   a nav row, and a player row that grows from 0 */
 :root{
   --black:#000;
   --raise:#0d0d0d;          /* player surface */
@@ -24,7 +25,9 @@
   --muted:#8a8a8a;
   --line:rgba(255,255,255,.09);
   --font:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
-  --flip:.85s cubic-bezier(.65,0,.25,1);
+  --fade:.55s ease;
+  --frame-tint:rgba(0,0,0,.42);
+  --frame-line:rgba(255,255,255,.16);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -35,6 +38,22 @@ body{
   display:grid; grid-template-rows:auto 1fr auto auto; height:100dvh; overflow:hidden;
   padding-top:env(safe-area-inset-top,0px);
 }
+body>*:not(.bg){position:relative; z-index:1}
+
+/* blurred portrait backdrop, shown on every section except home */
+.bg{
+  position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden;
+  opacity:0; transition:opacity .8s ease;
+}
+.bg::before{
+  content:""; position:absolute; inset:-12%;
+  background:url("img/portrait-600.webp") center 35% / cover no-repeat;
+  filter:blur(28px) brightness(.72); transform:scale(1.1);
+}
+.bg::after{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(0,0,0,.05), rgba(0,0,0,.55))}
+body:not([data-view="home"]) .bg{opacity:1; transition-delay:.25s}
+body.no-anim *, body.no-anim *::before{transition:none!important}
+
 button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent}
 :focus-visible{outline:2px solid rgba(255,255,255,.7); outline-offset:4px}
 
@@ -51,17 +70,22 @@ button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; -
 .back:active{box-shadow:inset 2px 2px 5px rgba(0,0,0,.6), inset -2px -2px 5px var(--btn-hi)}
 body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:auto}
 
-/* stage + flip card */
+/* stage + square: portrait fades out, frame fades in where it was */
 .stage{container-type:size; display:grid; place-items:center; min-height:0}
 .card{
   --s:min(100cqw - 32px, 100cqh - 32px, 620px);
-  width:var(--s); height:var(--s); perspective:1800px;
+  width:var(--s); height:var(--s); position:relative;
 }
-.inner{position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform var(--flip)}
-.card.flipped .inner{transform:rotateY(180deg)}
-.face{position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:4px; overflow:hidden}
+.face{position:absolute; inset:0; border-radius:4px; overflow:hidden}
+.front{transition:opacity var(--fade) .35s}
 .front img{width:100%; height:100%; object-fit:cover; display:block}
-.backface{transform:rotateY(180deg); background:var(--black); box-shadow:inset 0 0 0 1px var(--line)}
+.frame{
+  background:var(--frame-tint); box-shadow:inset 0 0 0 1px var(--frame-line), 0 30px 80px rgba(0,0,0,.45);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  opacity:0; visibility:hidden; transition:opacity .35s ease, visibility 0s linear .35s;
+}
+.card.open .front{opacity:0; transition:opacity .45s ease}
+.card.open .frame{opacity:1; visibility:visible; transition:opacity var(--fade) .4s, visibility 0s}
 
 /* panels inside the back face */
 .panel{
@@ -80,8 +104,9 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
   padding:.8rem 0;
 }
 .t-title{display:block; font-size:clamp(1rem,2.8cqmin,1.15rem); font-weight:500; font-variation-settings:"opsz" 24}
-.t-artist{display:block; font-size:.85rem; color:var(--muted); margin-top:.1rem}
-.t-dur{font-size:.85rem; color:var(--muted); font-variant-numeric:tabular-nums}
+.t-artist{display:block; font-size:.85rem; color:#a8a8a8; margin-top:.1rem}
+.t-dur{font-size:.85rem; color:#a8a8a8; font-variant-numeric:tabular-nums}
+.tracks li+li{border-top-color:rgba(255,255,255,.12)}
 .track:hover .t-title{color:#fff}
 .track[aria-current="true"] .t-title{color:#fff}
 .track[aria-current="true"] .t-dur{color:var(--text)}
@@ -140,15 +165,15 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 
 @media (prefers-reduced-motion:reduce){
-  .inner{transition:none}
-  .card .front{transition:opacity .3s}
-  .card.flipped .front{opacity:0}
-  .dock,.panel,.back,.nb{transition:none}
+  :root{--fade:.2s linear}
+  .bg{transition-duration:.2s}
+  .dock,.back,.nb{transition:none}
   .eq i{animation:none; height:8px}
 }
 </style>
 </head>
 <body data-view="home">
+<div class="bg" aria-hidden="true"></div>
 
 <div class="top">
   <button class="back" data-go="home" aria-label="Back to home">
@@ -159,7 +184,6 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 <main class="stage">
   <h1 class="sr">Jordan DeLaforgue, by2891</h1>
   <div class="card" data-card>
-    <div class="inner">
       <div class="face front">
         <picture>
           <source srcset="img/portrait-600.webp 600w, img/portrait.webp 1200w" sizes="(max-width:640px) 92vw, 620px" type="image/webp">
@@ -167,7 +191,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
         </picture>
       </div>
 
-      <div class="face backface" aria-live="polite">
+      <div class="face frame" aria-live="polite">
         <section class="panel" data-panel="music" aria-label="Music">
           <h2>Music</h2>
           <ol class="tracks" data-tracks></ol>
@@ -182,7 +206,6 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 
         <section class="panel" data-panel="other" aria-label="Other stuff"></section>
       </div>
-    </div>
   </div>
 </main>
 
@@ -235,16 +258,16 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
     document.body.dataset.view = next;
 
     if (next === 'home') {
-      card.classList.remove('flipped');
+      card.classList.remove('open');
     } else {
-      // Coming from home: set the panel instantly, then flip. Otherwise crossfade panels.
+      // Coming from home: set the panel instantly, then fade the frame in. Otherwise crossfade panels.
       Object.entries(panels).forEach(([k, p]) => {
         if (prev === 'home') p.style.transition = 'none';
         p.classList.toggle('on', k === next);
         if (prev === 'home') { p.offsetWidth; p.style.transition = ''; }
       });
       panels[next].scrollTop = 0;
-      card.classList.add('flipped');
+      card.classList.add('open');
     }
 
     $$('.nb').forEach(b => b.setAttribute('aria-current', b.dataset.go === next ? 'true' : 'false'));
@@ -256,9 +279,9 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
   document.addEventListener('keydown', e => { if (e.key === 'Escape') show('home'); });
   window.addEventListener('hashchange', () => show(location.hash.slice(1) || 'home', { push: false }));
   if (location.hash) {
-    card.querySelector('.inner').style.transition = 'none';
+    document.body.classList.add('no-anim');
     show(location.hash.slice(1), { push: false });
-    requestAnimationFrame(() => requestAnimationFrame(() => card.querySelector('.inner').style.transition = ''));
+    requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('no-anim')));
   }
 
   /* ---------- tracks ---------- */
