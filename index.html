@@ -87,11 +87,11 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .card.open .front{opacity:0; transition:opacity .45s ease}
 .card.open .frame{opacity:1; visibility:visible; transition:opacity var(--fade) .4s, visibility 0s}
 
-/* tattoo emblem: the only way into the site from home; overlaps the portrait's bottom-left corner */
+/* tattoo emblem: the only way into the site from home; sits over the heart in the portrait */
 .emblem{
-  position:absolute; left:0; bottom:0; z-index:2;
+  position:absolute; left:73%; top:91%; z-index:2;
   width:clamp(46px, 13%, 84px); aspect-ratio:200/220; padding:0;
-  transform:translate(-30%, 24%); color:#6f6f6f; opacity:.85;
+  transform:translate(-50%, -50%); color:#6f6f6f; opacity:.85;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.8));
   transition:opacity .4s ease, visibility 0s, color .4s;
 }
@@ -103,7 +103,6 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .emblem .cut{fill:none; stroke:#000; stroke-width:3.5; stroke-linecap:round}
 @keyframes beat{0%,8%,16%,100%{transform:scale(1)}4%{transform:scale(1.04)}12%{transform:scale(1.02)}}
 .card.open .emblem{opacity:0; visibility:hidden; pointer-events:none; transition:opacity .3s ease, visibility 0s linear .3s}
-@media (max-width:40rem){.emblem{transform:translate(-20%, 22%)}}
 
 /* panels inside the back face */
 .panel{
