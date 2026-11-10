@@ -90,7 +90,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 /* tattoo emblem: the only way into the site from home; overlaps the portrait's bottom-left corner */
 .emblem{
   position:absolute; left:0; bottom:0; z-index:2;
-  width:clamp(84px, 27%, 168px); aspect-ratio:1; padding:0;
+  width:clamp(80px, 25%, 156px); aspect-ratio:200/220; padding:0;
   transform:translate(-26%, 26%); color:#ececec;
   filter:drop-shadow(0 6px 14px rgba(0,0,0,.85)) drop-shadow(0 0 1px rgba(0,0,0,.9));
   transition:opacity .4s ease, visibility 0s, color .3s;
@@ -100,7 +100,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .emblem:hover svg{animation-duration:1.2s}
 .emblem .ink{fill:none; stroke:currentColor; stroke-width:7; stroke-linecap:round; stroke-linejoin:round}
 .emblem .cup{fill:currentColor}
-.emblem .pulse{stroke-dasharray:260; stroke-dashoffset:0}
+.emblem .cut{fill:none; stroke:#000; stroke-width:3; stroke-linecap:round}
 @keyframes beat{0%,12%,24%,100%{transform:scale(1)}6%{transform:scale(1.07)}18%{transform:scale(1.04)}}
 .card.open .emblem{opacity:0; visibility:hidden; pointer-events:none; transition:opacity .3s ease, visibility 0s linear .3s}
 @media (max-width:40rem){.emblem{transform:translate(-14%, 22%)}}
@@ -229,19 +229,27 @@ body[data-view="home"] .nav{max-height:0; padding-block:0; opacity:0; visibility
       </div>
 
       <button class="emblem" data-go="music" aria-label="Music" title="music">
-        <svg viewBox="0 0 200 200" aria-hidden="true">
-          <!-- headband -->
-          <path class="ink" d="M36 118 C36 58 64 30 100 30 C136 30 164 58 164 118" style="stroke-width:9"/>
-          <path class="ink" d="M48 112 C50 68 72 44 100 44 C128 44 150 68 152 112" style="stroke-width:3.5"/>
-          <!-- ear cups -->
-          <rect class="cup" x="22" y="106" width="30" height="58" rx="12"/>
-          <rect class="cup" x="148" y="106" width="30" height="58" rx="12"/>
-          <rect class="ink" x="34" y="98" width="8" height="14" rx="3" style="stroke-width:4"/>
-          <rect class="ink" x="158" y="98" width="8" height="14" rx="3" style="stroke-width:4"/>
+        <svg viewBox="0 0 200 220" aria-hidden="true">
+          <!-- tall headband -->
+          <path class="ink" d="M40 102 C34 38 62 12 100 12 C138 12 166 38 160 102" style="stroke-width:7"/>
+          <path class="ink" d="M48 100 C44 46 68 22 100 22 C132 22 156 46 152 100" style="stroke-width:2.5"/>
+          <!-- sliders where the band meets the cups -->
+          <rect class="cup" x="33" y="98" width="16" height="16" rx="3"/>
+          <rect class="cup" x="151" y="98" width="16" height="16" rx="3"/>
+          <!-- ear cups with cushion swirl -->
+          <circle class="cup" cx="40" cy="140" r="25"/>
+          <circle class="cup" cx="160" cy="140" r="25"/>
+          <path class="cut" d="M54 124 C36 118 22 130 24 146 C26 160 42 166 52 158"/>
+          <circle class="cut" cx="34" cy="142" r="9"/>
+          <path class="cut" d="M146 124 C164 118 178 130 176 146 C174 160 158 166 148 158"/>
+          <circle class="cut" cx="166" cy="142" r="9"/>
+          <!-- cords curling down and in -->
+          <path class="ink" d="M42 165 C38 186 48 202 64 208" style="stroke-width:4"/>
+          <path class="ink" d="M158 165 C162 186 152 202 136 208" style="stroke-width:4"/>
           <!-- heart -->
-          <path class="ink" d="M100 170 C66 146 60 120 66 104 C72 88 92 84 100 102 C108 84 128 88 134 104 C140 120 134 146 100 170 Z"/>
+          <path class="ink" d="M100 168 C80 154 74 140 77 130 C80 120 95 117 100 130 C105 117 120 120 123 130 C126 140 120 154 100 168 Z" style="stroke-width:5.5"/>
           <!-- pulse line through the heart, cup to cup -->
-          <path class="ink pulse" d="M54 130 L78 130 L85 116 L93 148 L102 98 L110 142 L116 130 L146 130" style="stroke-width:5.5"/>
+          <path class="ink" d="M64 140 L84 140 L89 129 L95 154 L101 122 L107 150 L111 140 L136 140" style="stroke-width:4.5"/>
         </svg>
       </button>
   </div>
