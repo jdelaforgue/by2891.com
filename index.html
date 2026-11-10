@@ -345,7 +345,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
     dock.classList.add('open');
     if ('mediaSession' in navigator)
       navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist, album: 'by2891',
-        artwork: [{ src: 'img/portrait-600.webp', sizes: '600x600', type: 'image/webp' }] });
+        artwork: [{ src: 'img/portrait-art.webp', sizes: '600x600', type: 'image/webp' }] });
     sync();
   }
   const toggle = () => (idx < 0 ? play(0) : audio.paused ? audio.play() : audio.pause());
