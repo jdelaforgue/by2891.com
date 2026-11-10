@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..700&display=swap">
 <style>
 /* Layout: one black stage, a square that crossfades from portrait to a framed panel over a blurred portrait backdrop,
-   a nav row, and a player row that grows from 0 */
+   and a player row that grows from 0 */
 :root{
   --black:#000;
   --raise:#0d0d0d;          /* player surface */
@@ -35,7 +35,7 @@ html,body{height:100%}
 body{
   margin:0; background:var(--black); color:var(--text); font-family:var(--font);
   font-variation-settings:"opsz" 14; -webkit-font-smoothing:antialiased;
-  display:grid; grid-template-rows:auto 1fr auto auto; height:100dvh; overflow:hidden;
+  display:grid; grid-template-rows:auto 1fr auto; height:100dvh; overflow:hidden;
   padding-top:env(safe-area-inset-top,0px);
 }
 body>*:not(.bg){position:relative; z-index:1}
@@ -89,7 +89,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 
 /* tattoo emblem: the only way into the site from home; sits over the heart in the portrait */
 .emblem{
-  position:absolute; left:73%; top:91%; z-index:2;
+  position:absolute; left:73%; top:95%; z-index:2;
   width:clamp(46px, 13%, 84px); aspect-ratio:200/220; padding:0;
   transform:translate(-50%, -50%); color:#6f6f6f; opacity:.85;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.8));
@@ -136,28 +136,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .x{display:inline-grid; place-items:center; width:1.05em; height:1.05em; margin-left:.45em; vertical-align:.08em;
   border-radius:.18em; background:#8f8f8f; color:#000; font-size:.68em; font-weight:700; line-height:1; font-variation-settings:"opsz" 12}
 
-/* neumorphic nav */
-.nav{
-  max-height:6rem; overflow:hidden; transition:max-height .45s ease, opacity .35s ease, padding .45s ease;
-  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(.6rem,3vw,1.5rem);
-  width:100%; max-width:31rem; margin:0 auto; padding-block:1rem 1.5rem;
-  padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px));
-}
-body[data-view="home"] .nav{max-height:0; padding-block:0; opacity:0; visibility:hidden}
-.nb{
-  height:3.25rem; border-radius:999px; background:var(--btn); color:var(--btn-text);
-  font-size:clamp(.9rem,2.6vw,1rem); font-weight:500; letter-spacing:.01em; white-space:nowrap;
-  box-shadow:-5px -5px 12px var(--btn-hi), 5px 5px 12px var(--lo), inset 0 1px 0 rgba(255,255,255,.06);
-  transition:box-shadow .25s, color .25s, transform .15s;
-}
-.nb:hover{color:#fff}
-.nb:active{transform:scale(.98)}
-.nb[aria-current="true"]{
-  color:#fff; background:#232323;
-  box-shadow:inset 4px 4px 9px rgba(0,0,0,.65), inset -4px -4px 9px var(--btn-hi);
-}
-
-/* mini player: grid row that grows from 0, pushing the nav up */
+/* mini player: grid row that grows from 0 */
 .dock{display:grid; grid-template-rows:0fr; transition:grid-template-rows .45s cubic-bezier(.2,.8,.2,1)}
 .dock.open{grid-template-rows:1fr}
 .dock>div{overflow:hidden; min-height:0; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px))}
@@ -186,7 +165,7 @@ body[data-view="home"] .nav{max-height:0; padding-block:0; opacity:0; visibility
 @media (prefers-reduced-motion:reduce){
   :root{--fade:.2s linear}
   .bg{transition-duration:.2s}
-  .dock,.back,.nb,.nav{transition:none}
+  .dock,.back{transition:none}
   .emblem svg{animation:none}
   .eq i{animation:none; height:8px}
 }
@@ -254,11 +233,6 @@ body[data-view="home"] .nav{max-height:0; padding-block:0; opacity:0; visibility
   </div>
 </main>
 
-<nav class="nav" aria-label="Main">
-  <button class="nb" data-go="music">music</button>
-  <button class="nb" data-go="about">about</button>
-  <button class="nb" data-go="other">other stuff</button>
-</nav>
 
 <div class="dock" data-dock>
   <div>
