@@ -91,7 +91,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .emblem{
   position:absolute; left:73%; top:114%; z-index:2;
   width:clamp(62px, 17.5%, 114px); aspect-ratio:200/220; padding:0;
-  transform:translate(-50%, -50%); color:#6f6f6f; opacity:.85;
+  transform:translate(-50%, -50%); color:#8e8e8e; opacity:.95;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.8));
   transition:opacity .4s ease, visibility 0s, color .4s;
 }
@@ -100,6 +100,9 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .emblem:hover svg{animation-duration:1.2s}
 .emblem .ink{fill:none; stroke:currentColor; stroke-width:7; stroke-linecap:round; stroke-linejoin:round}
 .emblem .cup{fill:currentColor}
+.emblem .heart{fill:url(#heartwash)}
+.emblem .pulse{stroke:#dcdcdc}
+.emblem:hover .pulse{stroke:#fff}
 .emblem .cut{fill:none; stroke:#000; stroke-width:3.5; stroke-linecap:round}
 @keyframes beat{0%,8%,16%,100%{transform:scale(1)}4%{transform:scale(1.04)}12%{transform:scale(1.02)}}
 .card.open .emblem{opacity:0; visibility:hidden; pointer-events:none; transition:opacity .3s ease, visibility 0s linear .3s}
@@ -208,9 +211,10 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 
       <button class="emblem" data-go="music" aria-label="Music" title="music">
         <svg viewBox="0 0 200 220" aria-hidden="true">
+          <defs><radialGradient id="heartwash" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#c8323a" stop-opacity=".45"/><stop offset=".75" stop-color="#b3202a" stop-opacity=".7"/><stop offset="1" stop-color="#8f141d" stop-opacity=".85"/></radialGradient></defs>
           <!-- tall headband -->
-          <path class="ink" d="M40 102 C34 38 62 12 100 12 C138 12 166 38 160 102" style="stroke-width:7"/>
-          <path class="ink" d="M48 100 C44 46 68 22 100 22 C132 22 156 46 152 100" style="stroke-width:2.5"/>
+          <path class="ink" d="M40 102 C34 38 62 12 100 12 C138 12 166 38 160 102" style="stroke-width:8.5"/>
+          <path class="ink" d="M48 100 C44 46 68 22 100 22 C132 22 156 46 152 100" style="stroke-width:3.5"/>
           <!-- sliders where the band meets the cups -->
           <rect class="cup" x="33" y="98" width="16" height="16" rx="3"/>
           <rect class="cup" x="151" y="98" width="16" height="16" rx="3"/>
@@ -222,12 +226,12 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
           <path class="cut" d="M146 124 C164 118 178 130 176 146 C174 160 158 166 148 158"/>
           <circle class="cut" cx="166" cy="142" r="9"/>
           <!-- cords curling down and in -->
-          <path class="ink" d="M42 165 C38 186 48 202 64 208" style="stroke-width:4"/>
-          <path class="ink" d="M158 165 C162 186 152 202 136 208" style="stroke-width:4"/>
+          <path class="ink" d="M42 165 C38 186 48 202 64 208" style="stroke-width:5"/>
+          <path class="ink" d="M158 165 C162 186 152 202 136 208" style="stroke-width:5"/>
           <!-- heart -->
-          <path class="ink" d="M100 168 C80 154 74 140 77 130 C80 120 95 117 100 130 C105 117 120 120 123 130 C126 140 120 154 100 168 Z" style="stroke-width:5.5"/>
+          <path class="ink heart" d="M100 168 C80 154 74 140 77 130 C80 120 95 117 100 130 C105 117 120 120 123 130 C126 140 120 154 100 168 Z" style="stroke-width:6.5"/>
           <!-- pulse line through the heart, cup to cup -->
-          <path class="ink" d="M64 140 L84 140 L89 129 L95 154 L101 122 L107 150 L111 140 L136 140" style="stroke-width:4.5"/>
+          <path class="ink pulse" d="M64 140 L84 140 L89 127 L95 156 L101 119 L107 152 L111 140 L136 140" style="stroke-width:6"/>
         </svg>
       </button>
   </div>
