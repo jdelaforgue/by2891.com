@@ -32,6 +32,7 @@
 }
 *{box-sizing:border-box}
 html,body{height:100%}
+html{overflow:hidden}
 body{
   margin:0; background:var(--black); color:var(--text); font-family:var(--font);
   font-variation-settings:"opsz" 14; -webkit-font-smoothing:antialiased;
@@ -73,8 +74,10 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 /* stage + square: portrait fades out, frame fades in where it was */
 .stage{container-type:size; display:grid; place-items:center; min-height:0}
 .card{
-  --s:min(100cqw - 32px, 100cqh - 32px, 620px);
+  --s:min(100cqw - 32px, 100cqh / 1.32, 620px);
   width:var(--s); height:var(--s); position:relative;
+  /* on short screens, nudge up just enough to keep the emblem below it on screen */
+  translate:0 calc(-1 * max(0px, var(--s) * .75 - 50cqh + 8px));
 }
 .face{position:absolute; inset:0; border-radius:4px; overflow:hidden}
 .front{transition:opacity var(--fade) .35s}
