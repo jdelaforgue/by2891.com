@@ -152,7 +152,8 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   opacity:0; transform:translate(var(--lx,0), var(--ly,0)) rotate(-2.5deg) scale(.96); transition:opacity .3s ease, transform .3s ease;
 }
 .label small{display:block; font-weight:500; font-size:.78em; opacity:.7; margin-top:.1rem}
-.label.on{opacity:1; transform:translate(var(--lx,0), var(--ly,0)) rotate(-2.5deg)}
+.label.on{opacity:1; transform:translate(var(--lx,0), var(--ly,0)) rotate(-2.5deg); pointer-events:auto; cursor:pointer}
+.label{text-align:left; font-family:inherit; border:0}
 .x{display:inline-grid; place-items:center; width:1.05em; height:1.05em; margin-left:.4em; vertical-align:.08em;
   border-radius:.18em; background:#000; color:#f2f2f2; font-size:.62em; font-weight:700; line-height:1}
 .hint{
@@ -233,7 +234,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
 
 <section class="collage" data-collage aria-label="Music: tap a picture to play its song">
   <div class="canvas" data-canvas></div>
-  <div class="label" data-label aria-live="polite"></div>
+  <button class="label" data-label type="button" aria-live="polite"></button>
   <p class="hint" data-hint>Tap to play. Swipe left for the next one, right to go back.</p>
 </section>
 <audio data-audio preload="none"></audio>
@@ -430,7 +431,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   /* ----- pointer: tap anywhere on the wall; tap or swipe the top of the pile ----- */
   let drag = null, raf = 0;
   root.addEventListener('pointerdown', e => {
-    if (e.target.closest('.back')) return;
+    if (e.target.closest('.back, .label')) return;
     // pile: a swipe anywhere moves the top picture; a tap has to land on it
     const top = order[order.length - 1];
     const i = mode === 'pile' ? top : pieceAt(e.clientX, e.clientY);
@@ -481,31 +482,40 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   root.addEventListener('pointercancel', () => { if (drag && drag.i >= 0) { const el = els[drag.i]; el.classList.remove('dragging'); el.style.translate = ''; el.style.rotate = ''; if (drag.back != null) goBack(drag.back, false); } drag = null; });
 
   /* swipe right-to-left: next (top goes to the bottom). left-to-right: back (the last one passed comes back on top).
-     If a song is playing, the new top picture's song takes over, like skipping on a player. */
+     Swiping never changes the song: only tapping a picture does. */
   function toss(i) {
     hint.classList.add('gone');
-    const wasPlaying = !audio.paused, el = els[i];
+    const el = els[i];
     el.style.translate = `${-innerWidth * 1.1}px 0px`; el.style.rotate = '-25deg';
     setTimeout(() => {
       order = [i, ...order.filter(k => k !== i)];
       el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout();
       el.offsetWidth; el.classList.remove('dragging');
-      if (wasPlaying) toggle(order[order.length - 1]);
     }, reduced ? 0 : 320);
   }
   function goBack(b, commit) {
-    const el = els[b], wasPlaying = !audio.paused;
+    const el = els[b];
     el.classList.remove('dragging');
     if (commit) {
       hint.classList.add('gone');
       order = [...order.slice(1), b];
       el.style.translate = ''; el.style.rotate = ''; layout();
-      if (wasPlaying) toggle(b);
     } else {
       el.style.translate = `${-innerWidth * 1.1}px 0px`;
       setTimeout(() => { el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout(); el.offsetWidth; el.classList.remove('dragging'); }, reduced ? 0 : 320);
     }
   }
+
+  // tapping the title label brings the playing picture back to the top of the pile
+  label.addEventListener('click', () => {
+    if (mode !== 'pile' || current < 0 || order[order.length - 1] === current) return;
+    const el = els[current];
+    order = [...order.filter(k => k !== current), current];
+    el.classList.add('dragging'); el.style.zIndex = 999;
+    el.style.translate = `${-innerWidth * 1.1}px 0px`; el.style.rotate = '-22deg';
+    el.offsetWidth; el.classList.remove('dragging');
+    requestAnimationFrame(() => { el.style.translate = ''; el.style.rotate = ''; layout(); });
+  });
 
   addEventListener('resize', layout);
   pileQuery.addEventListener('change', layout);
