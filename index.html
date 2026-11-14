@@ -234,7 +234,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
 <section class="collage" data-collage aria-label="Music: tap a picture to play its song">
   <div class="canvas" data-canvas></div>
   <div class="label" data-label aria-live="polite"></div>
-  <p class="hint" data-hint>Tap to play. Swipe for the next one.</p>
+  <p class="hint" data-hint>Tap to play. Swipe left for the next one, right to go back.</p>
 </section>
 <audio data-audio preload="none"></audio>
 
@@ -381,6 +381,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     const a = alpha[i]; if (!a) return true;
     return a.d[(Math.floor(v * (a.H - 1)) * a.W + Math.floor(u * (a.W - 1))) * 4 + 3] > 40;
   }
+  function insideRect(i, e) { const r = els[i].getBoundingClientRect(); return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; }
   function pieceAt(x, y) {
     const stack = mode === 'wall'
       ? PIECES.map((p, i) => i).sort((a, b) => (+els[b].style.zIndex) - (+els[a].style.zIndex))
@@ -430,8 +431,11 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   let drag = null, raf = 0;
   root.addEventListener('pointerdown', e => {
     if (e.target.closest('.back')) return;
-    const i = pieceAt(e.clientX, e.clientY);
-    drag = { i, x: e.clientX, y: e.clientY, dx: 0, moved: false };
+    // pile: a swipe anywhere moves the top picture; a tap has to land on it
+    const top = order[order.length - 1];
+    const i = mode === 'pile' ? top : pieceAt(e.clientX, e.clientY);
+    const onIt = mode === 'pile' ? (alpha[top] ? hitPiece(top, e.clientX, e.clientY) || insideRect(top, e) : true) : true;
+    drag = { i, x: e.clientX, y: e.clientY, dx: 0, moved: false, onIt };
     if (mode === 'pile' && i >= 0) { root.setPointerCapture(e.pointerId); els[i].classList.add('dragging'); }
   });
   root.addEventListener('pointermove', e => {
@@ -456,22 +460,37 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
       const el = els[d.i]; el.classList.remove('dragging');
       if (d.moved && Math.abs(d.dx) > 70) return toss(d.i, Math.sign(d.dx));
       el.style.translate = ''; el.style.rotate = '';
-      if (!d.moved) toggle(d.i);
+      if (!d.moved && d.onIt) toggle(d.i);
       return;
     }
     if (mode === 'wall' && d.i >= 0 && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10) toggle(d.i);
   });
   root.addEventListener('pointercancel', () => { if (drag && drag.i >= 0) { const el = els[drag.i]; el.classList.remove('dragging'); el.style.translate = ''; el.style.rotate = ''; } drag = null; });
 
+  /* swipe right-to-left: next (top goes to the bottom). left-to-right: back (bottom comes up on top).
+     If a song is playing, the new top picture's song takes over, like skipping on a player. */
   function toss(i, dir) {
-    const el = els[i];
     hint.classList.add('gone');
-    el.style.translate = `${dir * innerWidth * 1.1}px 0px`; el.style.rotate = `${dir * 25}deg`;
-    setTimeout(() => {
-      order = [i, ...order.filter(k => k !== i)];          // send it to the bottom of the pile
-      el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout();
+    const wasPlaying = !audio.paused;
+    const after = () => { if (wasPlaying) toggle(order[order.length - 1]); };
+    if (dir < 0) {
+      const el = els[i];
+      el.style.translate = `${-innerWidth * 1.1}px 0px`; el.style.rotate = '-25deg';
+      setTimeout(() => {
+        order = [i, ...order.filter(k => k !== i)];
+        el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout();
+        el.offsetWidth; el.classList.remove('dragging'); after();
+      }, reduced ? 0 : 320);
+    } else {
+      const top = els[i]; top.style.translate = ''; top.style.rotate = '';
+      const b = order[0], el = els[b];
+      order = [...order.slice(1), b];
+      el.classList.add('dragging'); layout();
+      el.style.translate = `${innerWidth * 1.1}px 0px`; el.style.rotate = '25deg';
       el.offsetWidth; el.classList.remove('dragging');
-    }, reduced ? 0 : 320);
+      requestAnimationFrame(() => { el.style.translate = ''; el.style.rotate = ''; });
+      after();
+    }
   }
 
   addEventListener('resize', layout);
