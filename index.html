@@ -11,8 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..700&display=swap">
 <style>
-/* Layout: one black stage, a square that crossfades from portrait to a framed panel over a blurred portrait backdrop,
-   and a player row that grows from 0 */
+/* Layout: one black stage, a square that crossfades from portrait to a framed panel over a blurred portrait backdrop.
+   Music is a full-screen cutout collage: a pasted-up wall on wide screens, a pile on phones. */
 :root{
   --black:#000;
   --raise:#0d0d0d;          /* player surface */
@@ -39,7 +39,8 @@ body{
   display:grid; grid-template-rows:auto 1fr auto; height:100dvh; overflow:hidden;
   padding-top:env(safe-area-inset-top,0px);
 }
-body>*:not(.bg){position:relative; z-index:1}
+body>*:not(.bg):not(.collage){position:relative; z-index:1}
+.top{z-index:6!important}
 
 /* blurred portrait backdrop, shown on every section except home */
 .bg{
@@ -53,6 +54,7 @@ body>*:not(.bg){position:relative; z-index:1}
 }
 .bg::after{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(0,0,0,.05), rgba(0,0,0,.55))}
 body:not([data-view="home"]) .bg{opacity:1; transition-delay:.25s}
+body[data-view="music"] .bg{opacity:0; transition-delay:0s}
 body.no-anim *, body.no-anim *::before{transition:none!important}
 
 button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent}
@@ -89,6 +91,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 }
 .card.open .front{opacity:0; transition:opacity .45s ease}
 .card.open .frame{opacity:1; visibility:visible; transition:opacity var(--fade) .4s, visibility 0s}
+body[data-view="music"] .card.open .frame{opacity:0; visibility:hidden}
 
 /* tattoo emblem: the only way into the site from home; sits over the heart in the portrait */
 .emblem{
@@ -100,7 +103,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 }
 .emblem svg{width:100%; height:100%; display:block; overflow:visible; animation:beat 7s ease-in-out infinite; transform-origin:50% 60%}
 .emblem:hover,.emblem:focus-visible{color:#d8d8d8; opacity:1}
-.emblem:hover svg{animation-duration:1.2s}
+.emblem:hover svg, body.is-playing .emblem svg{animation-duration:1.2s}
 .emblem .ink{fill:none; stroke:currentColor; stroke-width:5; stroke-linecap:round; stroke-linejoin:round}
 .emblem .cup{fill:currentColor}
 .emblem .heart{fill:url(#heartwash)}
@@ -120,60 +123,52 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 .panel h2{margin:0 0 1.25rem; font-weight:600; font-size:clamp(1.4rem,4.5cqmin,2rem); font-variation-settings:"opsz" 60,"wdth" 85; letter-spacing:-.01em}
 .panel p{margin:0 0 1em; color:#bdbdbd; line-height:1.65; font-size:clamp(.95rem,2.4cqmin,1.05rem); max-width:38em}
 
-.tracks{list-style:none; margin:0; padding:0}
-.tracks li+li{border-top:1px solid var(--line)}
-.track{
-  width:100%; display:grid; grid-template-columns:1fr auto; align-items:center; gap:1rem; text-align:left;
-  padding:.8rem 0;
+/* ---------- music collage ---------- */
+.collage{
+  position:fixed; inset:0; z-index:2; overflow:hidden; background:#000; touch-action:none;
+  opacity:0; visibility:hidden; transition:opacity .6s ease, visibility 0s linear .6s;
 }
-.t-title{display:block; font-size:clamp(1rem,2.8cqmin,1.15rem); font-weight:500; font-variation-settings:"opsz" 24}
-.t-artist{display:block; font-size:.85rem; color:#a8a8a8; margin-top:.1rem}
-.t-dur{font-size:.85rem; color:#a8a8a8; font-variant-numeric:tabular-nums}
-.tracks li+li{border-top-color:rgba(255,255,255,.12)}
-.track:hover .t-title{color:#fff}
-.track[aria-current="true"] .t-title{color:#fff}
-.track[aria-current="true"] .t-dur{color:var(--text)}
-.eq{display:none; gap:2px; align-items:flex-end; height:12px}
-.eq i{width:2px; background:var(--text); animation:eq 1s ease-in-out infinite}
-.eq i:nth-child(2){animation-delay:-.4s} .eq i:nth-child(3){animation-delay:-.7s}
-@keyframes eq{0%,100%{height:3px}50%{height:12px}}
-.track[aria-current="true"].playing .eq{display:inline-flex}
-.track[aria-current="true"].playing .t-dur{display:none}
-.x{display:inline-grid; place-items:center; width:1.05em; height:1.05em; margin-left:.45em; vertical-align:.08em;
-  border-radius:.18em; background:#8f8f8f; color:#000; font-size:.68em; font-weight:700; line-height:1; font-variation-settings:"opsz" 12}
+body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opacity .7s ease .3s, visibility 0s}
+.canvas{position:absolute; left:50%; top:50%; transform-origin:0 0}
+.piece{
+  position:absolute; left:0; top:0; padding:0; pointer-events:none;
+  transition:transform .45s cubic-bezier(.2,.8,.2,1), filter .45s ease;
+}
+.piece img{display:block; width:100%; height:100%; user-select:none; -webkit-user-drag:none}
+.piece:focus-visible{outline:2px dashed rgba(255,255,255,.8); outline-offset:6px}
+.collage.hover-on{cursor:pointer}
+.collage.has-playing .piece:not(.playing){filter:brightness(.42) grayscale(1)}
+.piece.playing{filter:drop-shadow(0 22px 34px rgba(0,0,0,.85)) brightness(1.08)}
+.piece.hover:not(.playing){filter:brightness(1.12)}
+.mode-pile .piece{transition:transform .5s cubic-bezier(.2,.8,.2,1), filter .45s ease}
+.mode-pile .piece.dragging{transition:none}
+.mode-pile.has-playing .piece:not(.playing){filter:none}
 
-/* mini player: grid row that grows from 0 */
-.dock{display:grid; grid-template-rows:0fr; transition:grid-template-rows .45s cubic-bezier(.2,.8,.2,1)}
-.dock.open{grid-template-rows:1fr}
-.dock>div{overflow:hidden; min-height:0; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px))}
-.player{
-  display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.5rem 1rem;
-  margin:0 auto calc(1rem + env(safe-area-inset-bottom,0px)); width:100%; max-width:40rem;
-  padding:.7rem 1rem; border-radius:1.25rem; background:var(--raise);
-  box-shadow:-5px -5px 12px var(--hi), 5px 5px 12px var(--lo);
+/* pasted paper label with the song title */
+.label{
+  position:absolute; left:0; top:0; z-index:200; pointer-events:none; max-width:min(22rem, 80vw);
+  padding:.35rem .6rem .4rem; background:#f2f2f2; color:#000; box-shadow:0 6px 18px rgba(0,0,0,.6);
+  font-weight:700; font-size:clamp(.95rem, 1.4vw, 1.15rem); line-height:1.15; font-variation-settings:"opsz" 36,"wdth" 78;
+  opacity:0; transform:translate(var(--lx,0), var(--ly,0)) rotate(-2.5deg) scale(.96); transition:opacity .3s ease, transform .3s ease;
 }
-.pbtns{display:flex; align-items:center; gap:.25rem}
-.pb{width:2.25rem; height:2.25rem; border-radius:50%; display:grid; place-items:center; color:var(--muted)}
-.pb:hover{color:var(--text)}
-.pb svg{width:16px; height:16px; fill:currentColor}
-.pb.main{width:2.6rem; height:2.6rem; color:#fff; background:var(--btn); box-shadow:-3px -3px 7px var(--btn-hi), 3px 3px 7px var(--lo)}
-.pb.main:active{box-shadow:inset 2px 2px 5px rgba(0,0,0,.65), inset -2px -2px 5px var(--btn-hi)}
-.pinfo{min-width:0}
-.ptitle{display:block; font-size:.95rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.partist{display:block; font-size:.8rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.ptime{font-size:.8rem; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap}
-.seek{grid-column:1/-1; height:3px; border-radius:2px; background:rgba(255,255,255,.08); position:relative; cursor:pointer; touch-action:none}
-.seek::before{content:""; position:absolute; inset:-8px 0} /* bigger touch target */
-.seek span{position:absolute; inset:0 auto 0 0; width:0; background:var(--text); border-radius:inherit}
+.label small{display:block; font-weight:500; font-size:.78em; opacity:.7; margin-top:.1rem}
+.label.on{opacity:1; transform:translate(var(--lx,0), var(--ly,0)) rotate(-2.5deg)}
+.x{display:inline-grid; place-items:center; width:1.05em; height:1.05em; margin-left:.4em; vertical-align:.08em;
+  border-radius:.18em; background:#000; color:#f2f2f2; font-size:.62em; font-weight:700; line-height:1}
+.hint{
+  position:absolute; left:0; right:0; bottom:calc(1.25rem + env(safe-area-inset-bottom,0px)); text-align:center;
+  color:#6d6d6d; font-size:.85rem; pointer-events:none; transition:opacity .6s ease; z-index:150;
+}
+.mode-wall .hint, .hint.gone{opacity:0}
 
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 
 @media (prefers-reduced-motion:reduce){
   :root{--fade:.2s linear}
   .bg{transition-duration:.2s}
-  .dock,.back{transition:none}
+  .back{transition:none}
+  .piece,.label,.collage{transition:none!important}
   .emblem svg{animation:none}
-  .eq i{animation:none; height:8px}
 }
 </style>
 </head>
@@ -197,10 +192,6 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
       </div>
 
       <div class="face frame" aria-live="polite">
-        <section class="panel" data-panel="music" aria-label="Music">
-          <ol class="tracks" data-tracks></ol>
-        </section>
-
         <section class="panel" data-panel="about" aria-label="About">
           <h2>About</h2>
           <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.</p>
@@ -240,31 +231,31 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
 </main>
 
 
-<div class="dock" data-dock>
-  <div>
-    <div class="player" role="region" aria-label="Music player">
-      <div class="pbtns">
-        <button class="pb" data-prev aria-label="Previous track"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
-        <button class="pb main" data-toggle aria-label="Play"><svg viewBox="0 0 24 24" data-icon><path d="M7 4v16l13-8z"/></svg></button>
-        <button class="pb" data-next aria-label="Next track"><svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2zM4 5v14l11-7z"/></svg></button>
-      </div>
-      <div class="pinfo"><span class="ptitle" data-ptitle></span><span class="partist" data-partist></span></div>
-      <span class="ptime" data-ptime>0:00</span>
-      <div class="seek" data-seek role="slider" aria-label="Seek" tabindex="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span data-fill></span></div>
-    </div>
-  </div>
-</div>
+<section class="collage" data-collage aria-label="Music: tap a picture to play its song">
+  <div class="canvas" data-canvas></div>
+  <div class="label" data-label aria-live="polite"></div>
+  <p class="hint" data-hint>Tap to play. Swipe for the next one.</p>
+</section>
 <audio data-audio preload="none"></audio>
 
 <script>
 (() => {
-  /* Tracklist. Add a line here when you upload a new MP3 to /music. explicit: true shows the E badge. */
-  const TRACKS = [
-    { src: 'music/dec24.mp3',      title: 'December 24 (Feb Mix)', artist: 'Earl Sweatshirt', explicit: true },
-    { src: 'music/bomb.mp3',       title: 'Bomb (Feb Mix)',        artist: 'Freddie Gibbs ft. Raekwon', explicit: true },
-    { src: 'music/no-problem.mp3', title: 'No Problem (Feb Mix)',  artist: 'Lil Scrappy', explicit: true },
-    { src: 'music/emmanuel.mp3',   title: 'Emmanuel (Feb Mix)',    artist: 'Ameer Vann', explicit: true },
-    { src: 'music/robes.mp3',      title: 'Robes (Feb Mix)',       artist: 'Freddie Gibbs ft. Earl Sweatshirt', explicit: true },
+  /* Collage. One entry per picture. x/y = center on a 1600x1000 wall, w = width on that wall, rot = tilt, z = stacking.
+     song: the MP3 that plays when the picture is tapped. explicit: true shows the E badge. */
+  const PIECES = [
+    { img:'hubble',     iw:660, ih:480, x:330,  y:250, w:720, rot:-4, z:1, song:{ src:'music/placeholder/ph1.mp3', title:'Placeholder 01', artist:'Hubble' } },
+    { img:'brick',      iw:512, ih:512, x:1330, y:230, w:580, rot:5,  z:1, song:{ src:'music/placeholder/ph2.mp3', title:'Placeholder 02', artist:'Brick' } },
+    { img:'grass',      iw:512, ih:300, x:400,  y:860, w:760, rot:2,  z:1, song:{ src:'music/placeholder/ph3.mp3', title:'Placeholder 03', artist:'Grass' } },
+    { img:'gravel',     iw:512, ih:380, x:1340, y:830, w:600, rot:-6, z:2, song:{ src:'music/placeholder/ph4.mp3', title:'Placeholder 04', artist:'Gravel' } },
+    { img:'moon',       iw:500, ih:500, x:820,  y:250, w:470, rot:0,  z:2, song:{ src:'music/placeholder/ph5.mp3', title:'Placeholder 05', artist:'Moon' } },
+    { img:'motorcycle', iw:640, ih:460, x:820,  y:770, w:580, rot:3,  z:3, song:{ src:'music/placeholder/ph6.mp3', title:'Placeholder 06', artist:'Motorcycle' } },
+    { img:'rocket',     iw:220, ih:427, x:640,  y:250, w:160, rot:-3, z:3, song:{ src:'music/placeholder/ph7.mp3', title:'Placeholder 07', artist:'Rocket' } },
+    { img:'cameraman',  iw:410, ih:512, x:540,  y:520, w:320, rot:-7, z:4, song:{ src:'music/dec24.mp3', title:'December 24 (Feb Mix)', artist:'Earl Sweatshirt', explicit:true } },
+    { img:'astronaut',  iw:360, ih:420, x:1110, y:450, w:320, rot:6,  z:4, song:{ src:'music/bomb.mp3', title:'Bomb (Feb Mix)', artist:'Freddie Gibbs ft. Raekwon', explicit:true } },
+    { img:'cat',        iw:280, ih:300, x:180,  y:540, w:300, rot:-8, z:5, song:{ src:'music/placeholder/ph8.mp3', title:'Placeholder 08', artist:'Cat' } },
+    { img:'horse',      iw:377, ih:310, x:900,  y:600, w:330, rot:0,  z:5, song:{ src:'music/no-problem.mp3', title:'No Problem (Feb Mix)', artist:'Lil Scrappy', explicit:true } },
+    { img:'coffee',     iw:413, ih:383, x:250,  y:800, w:300, rot:4,  z:6, song:{ src:'music/emmanuel.mp3', title:'Emmanuel (Feb Mix)', artist:'Ameer Vann', explicit:true } },
+    { img:'statue',     iw:374, ih:565, x:1450, y:560, w:330, rot:0,  z:6, song:{ src:'music/robes.mp3', title:'Robes (Feb Mix)', artist:'Freddie Gibbs ft. Earl Sweatshirt', explicit:true } },
   ];
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -273,6 +264,7 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
   const panels = Object.fromEntries($$('[data-panel]').map(p => [p.dataset.panel, p]));
   const VIEWS = ['home', 'music', 'about', 'other'];
   let view = 'home';
+  var collage;   // set once the collage is built (a #music link can open it before then)
 
   /* ---------- views ---------- */
   function show(next, { push = true } = {}) {
@@ -291,7 +283,8 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
         p.classList.toggle('on', k === next);
         if (prev === 'home') { p.offsetWidth; p.style.transition = ''; }
       });
-      panels[next].scrollTop = 0;
+      if (panels[next]) panels[next].scrollTop = 0;
+      if (next === 'music' && collage) collage.open();
       card.classList.add('open');
     }
 
@@ -309,88 +302,186 @@ body:not([data-view="home"]) .back{opacity:1; transform:none; pointer-events:aut
     requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('no-anim')));
   }
 
-  /* ---------- tracks ---------- */
-  const fmt = t => (isFinite(t) && t > 0 ? `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}` : '');
-  const list = $('[data-tracks]');
-  list.innerHTML = TRACKS.map((t, i) => `
-    <li><button class="track" data-i="${i}">
-      <span><span class="t-title"><span class="t-name"></span>${t.explicit ? '<span class="x" title="Explicit" aria-label="Explicit">E</span>' : ''}</span><span class="t-artist"></span></span>
-      <span><span class="t-dur"></span><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span></span>
-    </button></li>`).join('');
-  const btns = $$('.track', list);
-  btns.forEach((b, i) => {
-    $('.t-name', b).textContent = TRACKS[i].title;
-    $('.t-artist', b).textContent = TRACKS[i].artist;
-    b.addEventListener('click', () => (i === idx ? toggle() : play(i)));
-    // fetch durations lazily (metadata only)
-    const probe = new Audio(); probe.preload = 'metadata'; probe.src = TRACKS[i].src;
-    probe.addEventListener('loadedmetadata', () => { $('.t-dur', b).textContent = fmt(probe.duration); probe.src = ''; }, { once: true });
+  /* ---------- collage ---------- */
+  const audio = $('[data-audio]');
+  const root = $('[data-collage]'), canvas = $('[data-canvas]'), label = $('[data-label]'), hint = $('[data-hint]');
+  const WALL_W = 1600, WALL_H = 1000;
+  const pileQuery = matchMedia('(max-width: 700px), (max-aspect-ratio: 4/5)');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let loaded = false, mode = '', scale = 1, current = -1;
+  let order = PIECES.map((_, i) => i);           // pile order, last = top
+  const alpha = [];                                // per-piece alpha masks for precise taps
+
+  const els = PIECES.map((p, i) => {
+    const b = document.createElement('button');
+    b.className = 'piece'; b.type = 'button';
+    b.setAttribute('aria-label', `Play ${p.song.title} by ${p.song.artist}`);
+    const img = document.createElement('img'); img.alt = ''; img.decoding = 'async'; img.draggable = false;
+    b.appendChild(img); canvas.appendChild(b);
+    b.addEventListener('click', e => { if (e.detail === 0) toggle(i); });   // keyboard activation only
+    return b;
   });
 
-  /* ---------- player ---------- */
-  const audio = $('[data-audio]'), dock = $('[data-dock]');
-  const PLAY = '<path d="M7 4v16l13-8z"/>', PAUSE = '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>';
-  let idx = -1;
-
-  function sync() {
-    const playing = !audio.paused;
-    $('[data-icon]').innerHTML = playing ? PAUSE : PLAY;
-    $('[data-toggle]').setAttribute('aria-label', playing ? 'Pause' : 'Play');
-    btns.forEach((b, i) => {
-      b.setAttribute('aria-current', i === idx ? 'true' : 'false');
-      b.classList.toggle('playing', i === idx && playing);
+  function loadImages() {
+    if (loaded) return; loaded = true;
+    PIECES.forEach((p, i) => {
+      const img = els[i].firstChild;
+      img.onload = () => {
+        try {
+          const c = document.createElement('canvas'), W = 120, H = Math.round(120 * p.ih / p.iw);
+          c.width = W; c.height = H; const ctx = c.getContext('2d', { willReadFrequently: true });
+          ctx.drawImage(img, 0, 0, W, H); alpha[i] = { W, H, d: ctx.getImageData(0, 0, W, H).data };
+        } catch { /* fall back to rectangle hits */ }
+      };
+      img.src = `img/collage/${p.img}.webp`;
     });
-    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
   }
-  function play(i) {
-    idx = (i + TRACKS.length) % TRACKS.length;
-    const t = TRACKS[idx];
-    audio.src = t.src; audio.play().catch(() => {});
-    $('[data-ptitle]').textContent = t.title;
-    $('[data-partist]').textContent = t.artist;
-    dock.classList.add('open');
-    if ('mediaSession' in navigator)
-      navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist, album: 'by2891',
-        artwork: [{ src: 'img/portrait-art.webp', sizes: '600x600', type: 'image/webp' }] });
-    sync();
-  }
-  const toggle = () => (idx < 0 ? play(0) : audio.paused ? audio.play() : audio.pause());
 
-  $('[data-toggle]').addEventListener('click', toggle);
-  $('[data-prev]').addEventListener('click', () => (audio.currentTime > 3 ? (audio.currentTime = 0) : play(idx - 1)));
-  $('[data-next]').addEventListener('click', () => play(idx + 1));
+  /* ----- layouts ----- */
+  function layout() {
+    const next = pileQuery.matches ? 'pile' : 'wall';
+    if (next !== mode) { mode = next; root.classList.toggle('mode-pile', mode === 'pile'); root.classList.toggle('mode-wall', mode === 'wall'); }
+    if (mode === 'wall') {
+      scale = Math.max(innerWidth / WALL_W, innerHeight / WALL_H);             // cover: fill the screen, crop the rim
+      canvas.style.width = WALL_W + 'px'; canvas.style.height = WALL_H + 'px';
+      canvas.style.transform = `scale(${scale}) translate(-50%, -50%)`;
+      PIECES.forEach((p, i) => {
+        const h = p.w * p.ih / p.iw, lift = i === current && !audio.paused ? 1.05 : 1;
+        Object.assign(els[i].style, { width: p.w + 'px', height: h + 'px', zIndex: i === current && !audio.paused ? 100 : p.z,
+          transform: `translate(${p.x - p.w / 2}px, ${p.y - h / 2}px) rotate(${p.rot}deg) scale(${lift})` });
+      });
+    } else {
+      scale = 1;
+      canvas.style.width = '0px'; canvas.style.height = '0px'; canvas.style.transform = 'none';
+      const maxW = Math.min(innerWidth * 0.78, 380), maxH = innerHeight * 0.52;
+      order.forEach((i, k) => {
+        const p = PIECES[i];
+        const seed = Math.sin((i + 1) * 91.7) * 10000, r = (seed - Math.floor(seed)), r2 = (r * 7) % 1, r3 = (r * 13) % 1;
+        const size = .72 + r3 * .28;                    // messy pile: mixed sizes, tilts and offsets
+        let w = maxW * size, h = w * p.ih / p.iw;
+        if (h > maxH * size) { h = maxH * size; w = h * p.iw / p.ih; }
+        const rot = (r - .5) * 28, ox = (r2 - .5) * 70, oy = (r3 - .5) * 50;
+        const lift = i === current && !audio.paused ? 1.04 : 1;
+        Object.assign(els[i].style, { width: w + 'px', height: h + 'px', zIndex: k + 1,
+          transform: `translate(${-w / 2 + ox}px, ${-h / 2 + oy - 20}px) rotate(${rot}deg) scale(${lift})` });
+        els[i].dataset.rot = rot;
+      });
+    }
+    placeLabel();
+  }
+
+  /* ----- precise hit test: rotate the tap into the picture's own space, then check its transparency ----- */
+  function hitPiece(i, x, y) {
+    const el = els[i], r = el.getBoundingClientRect();
+    const p = PIECES[i], rot = (mode === 'wall' ? p.rot : +el.dataset.rot) * Math.PI / 180;
+    const w = parseFloat(el.style.width) * scale, h = parseFloat(el.style.height) * scale;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2, dx = x - cx, dy = y - cy;
+    const u = (dx * Math.cos(-rot) - dy * Math.sin(-rot)) / w + .5, v = (dx * Math.sin(-rot) + dy * Math.cos(-rot)) / h + .5;
+    if (u < 0 || u > 1 || v < 0 || v > 1) return false;
+    const a = alpha[i]; if (!a) return true;
+    return a.d[(Math.floor(v * (a.H - 1)) * a.W + Math.floor(u * (a.W - 1))) * 4 + 3] > 40;
+  }
+  function pieceAt(x, y) {
+    const stack = mode === 'wall'
+      ? PIECES.map((p, i) => i).sort((a, b) => (+els[b].style.zIndex) - (+els[a].style.zIndex))
+      : [order[order.length - 1]];
+    return stack.find(i => hitPiece(i, x, y)) ?? -1;
+  }
+
+  /* ----- play / pause ----- */
+  function toggle(i) {
+    if (i === current) { audio.paused ? audio.play().catch(() => {}) : audio.pause(); return; }
+    current = i; const s = PIECES[i].song;
+    audio.src = s.src; audio.play().catch(() => {});
+    label.innerHTML = '';
+    const t = document.createElement('span'); t.textContent = s.title; label.appendChild(t);
+    if (s.explicit) label.insertAdjacentHTML('beforeend', '<span class="x" aria-label="Explicit">E</span>');
+    const a = document.createElement('small'); a.textContent = s.artist; label.appendChild(a);
+    if ('mediaSession' in navigator)
+      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.artist, album: 'by2891',
+        artwork: [{ src: 'img/portrait-art.webp', sizes: '600x600', type: 'image/webp' }] });
+  }
+  function sync() {
+    const playing = !audio.paused && current >= 0;
+    els.forEach((el, i) => el.classList.toggle('playing', playing && i === current));
+    root.classList.toggle('has-playing', playing);
+    document.body.classList.toggle('is-playing', playing);
+    label.classList.toggle('on', playing);
+    if ('mediaSession' in navigator) navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+    layout();
+  }
+  function placeLabel() {
+    if (current < 0) return;
+    let x, y;
+    if (mode === 'wall') {
+      const r = els[current].getBoundingClientRect(), lw = label.offsetWidth, lh = label.offsetHeight;
+      x = Math.min(Math.max(12, r.left + r.width * .55 - lw / 2), innerWidth - lw - 12);
+      y = r.bottom - lh * .6; if (y + lh > innerHeight - 12) y = Math.max(64, r.top - lh * .4);
+    } else {
+      x = (innerWidth - label.offsetWidth) / 2; y = innerHeight - label.offsetHeight - 64;
+    }
+    label.style.setProperty('--lx', x + 'px'); label.style.setProperty('--ly', y + 'px');
+  }
   audio.addEventListener('play', sync);
   audio.addEventListener('pause', sync);
-  audio.addEventListener('ended', () => play(idx + 1));
+  audio.addEventListener('ended', sync);                 // no auto-advance: the picture just settles back
 
-  const seek = $('[data-seek]'), fill = $('[data-fill]'), ptime = $('[data-ptime]');
-  audio.addEventListener('timeupdate', () => {
-    const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
-    fill.style.width = pct + '%';
-    seek.setAttribute('aria-valuenow', Math.round(pct));
-    ptime.textContent = `${fmt(audio.currentTime) || '0:00'} / ${fmt(audio.duration) || '0:00'}`;
+  /* ----- pointer: tap anywhere on the wall; tap or swipe the top of the pile ----- */
+  let drag = null, raf = 0;
+  root.addEventListener('pointerdown', e => {
+    if (e.target.closest('.back')) return;
+    const i = pieceAt(e.clientX, e.clientY);
+    drag = { i, x: e.clientX, y: e.clientY, dx: 0, moved: false };
+    if (mode === 'pile' && i >= 0) { root.setPointerCapture(e.pointerId); els[i].classList.add('dragging'); }
   });
-  const seekTo = x => {
-    const r = seek.getBoundingClientRect();
-    if (audio.duration) audio.currentTime = Math.min(1, Math.max(0, (x - r.left) / r.width)) * audio.duration;
-  };
-  seek.addEventListener('pointerdown', e => {
-    seek.setPointerCapture(e.pointerId); seekTo(e.clientX);
-    const move = ev => seekTo(ev.clientX);
-    seek.addEventListener('pointermove', move);
-    seek.addEventListener('pointerup', () => seek.removeEventListener('pointermove', move), { once: true });
+  root.addEventListener('pointermove', e => {
+    if (drag && mode === 'pile' && drag.i >= 0) {
+      drag.dx = e.clientX - drag.x; drag.moved ||= Math.abs(drag.dx) > 8;
+      const el = els[drag.i];
+      el.style.translate = `${drag.dx}px ${(e.clientY - drag.y) * .3}px`; el.style.rotate = `${drag.dx / 20}deg`;
+      return;
+    }
+    if (mode !== 'wall' || e.pointerType !== 'mouse') return;
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      const i = pieceAt(e.clientX, e.clientY);
+      els.forEach((el, k) => el.classList.toggle('hover', k === i));
+      root.classList.toggle('hover-on', i >= 0);
+    });
   });
-  seek.addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight') audio.currentTime += 5;
-    if (e.key === 'ArrowLeft') audio.currentTime -= 5;
+  root.addEventListener('pointerup', e => {
+    if (!drag) return;
+    const d = drag; drag = null;
+    if (mode === 'pile' && d.i >= 0) {
+      const el = els[d.i]; el.classList.remove('dragging');
+      if (d.moved && Math.abs(d.dx) > 70) return toss(d.i, Math.sign(d.dx));
+      el.style.translate = ''; el.style.rotate = '';
+      if (!d.moved) toggle(d.i);
+      return;
+    }
+    if (mode === 'wall' && d.i >= 0 && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10) toggle(d.i);
   });
+  root.addEventListener('pointercancel', () => { if (drag && drag.i >= 0) { const el = els[drag.i]; el.classList.remove('dragging'); el.style.translate = ''; el.style.rotate = ''; } drag = null; });
+
+  function toss(i, dir) {
+    const el = els[i];
+    hint.classList.add('gone');
+    el.style.translate = `${dir * innerWidth * 1.1}px 0px`; el.style.rotate = `${dir * 25}deg`;
+    setTimeout(() => {
+      order = [i, ...order.filter(k => k !== i)];          // send it to the bottom of the pile
+      el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout();
+      el.offsetWidth; el.classList.remove('dragging');
+    }, reduced ? 0 : 320);
+  }
+
+  addEventListener('resize', layout);
+  pileQuery.addEventListener('change', layout);
+  collage = { open() { loadImages(); layout(); } };
+  if (view === 'music') collage.open();
 
   if ('mediaSession' in navigator) {
-    const ms = navigator.mediaSession;
-    ms.setActionHandler('play', () => audio.play());
-    ms.setActionHandler('pause', () => audio.pause());
-    ms.setActionHandler('previoustrack', () => play(idx - 1));
-    ms.setActionHandler('nexttrack', () => play(idx + 1));
+    navigator.mediaSession.setActionHandler('play', () => audio.play());
+    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
   }
 })();
 </script>
