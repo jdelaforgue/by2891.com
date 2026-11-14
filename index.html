@@ -441,8 +441,20 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   root.addEventListener('pointermove', e => {
     if (drag && mode === 'pile' && drag.i >= 0) {
       drag.dx = e.clientX - drag.x; drag.moved ||= Math.abs(drag.dx) > 8;
-      const el = els[drag.i];
-      el.style.translate = `${drag.dx}px ${(e.clientY - drag.y) * .3}px`; el.style.rotate = `${drag.dx / 20}deg`;
+      const top = els[drag.i];
+      if (drag.dx > 0) {
+        // going back: the previous picture slides in from the left under your finger; the current one stays put
+        top.style.translate = ''; top.style.rotate = '';
+        if (drag.back == null) {
+          drag.back = order[0]; const b = els[drag.back];
+          b.classList.add('dragging'); b.style.zIndex = 999;
+        }
+        const b = els[drag.back];
+        b.style.translate = `${-innerWidth * 1.1 + drag.dx * 1.15}px 0px`; b.style.rotate = `${-22 + drag.dx / 15}deg`;
+      } else {
+        if (drag.back != null) { const b = els[drag.back]; b.style.translate = `${-innerWidth * 1.1}px 0px`; }
+        top.style.translate = `${drag.dx}px ${(e.clientY - drag.y) * .3}px`; top.style.rotate = `${drag.dx / 20}deg`;
+      }
       return;
     }
     if (mode !== 'wall' || e.pointerType !== 'mouse') return;
@@ -458,38 +470,40 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     const d = drag; drag = null;
     if (mode === 'pile' && d.i >= 0) {
       const el = els[d.i]; el.classList.remove('dragging');
-      if (d.moved && Math.abs(d.dx) > 70) return toss(d.i, Math.sign(d.dx));
+      if (d.back != null) return goBack(d.back, d.moved && d.dx > 70);
+      if (d.moved && d.dx < -70) return toss(d.i);
       el.style.translate = ''; el.style.rotate = '';
       if (!d.moved && d.onIt) toggle(d.i);
       return;
     }
     if (mode === 'wall' && d.i >= 0 && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10) toggle(d.i);
   });
-  root.addEventListener('pointercancel', () => { if (drag && drag.i >= 0) { const el = els[drag.i]; el.classList.remove('dragging'); el.style.translate = ''; el.style.rotate = ''; } drag = null; });
+  root.addEventListener('pointercancel', () => { if (drag && drag.i >= 0) { const el = els[drag.i]; el.classList.remove('dragging'); el.style.translate = ''; el.style.rotate = ''; if (drag.back != null) goBack(drag.back, false); } drag = null; });
 
-  /* swipe right-to-left: next (top goes to the bottom). left-to-right: back (bottom comes up on top).
+  /* swipe right-to-left: next (top goes to the bottom). left-to-right: back (the last one passed comes back on top).
      If a song is playing, the new top picture's song takes over, like skipping on a player. */
-  function toss(i, dir) {
+  function toss(i) {
     hint.classList.add('gone');
-    const wasPlaying = !audio.paused;
-    const after = () => { if (wasPlaying) toggle(order[order.length - 1]); };
-    if (dir < 0) {
-      const el = els[i];
-      el.style.translate = `${-innerWidth * 1.1}px 0px`; el.style.rotate = '-25deg';
-      setTimeout(() => {
-        order = [i, ...order.filter(k => k !== i)];
-        el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout();
-        el.offsetWidth; el.classList.remove('dragging'); after();
-      }, reduced ? 0 : 320);
-    } else {
-      const top = els[i]; top.style.translate = ''; top.style.rotate = '';
-      const b = order[0], el = els[b];
-      order = [...order.slice(1), b];
-      el.classList.add('dragging'); layout();
-      el.style.translate = `${innerWidth * 1.1}px 0px`; el.style.rotate = '25deg';
+    const wasPlaying = !audio.paused, el = els[i];
+    el.style.translate = `${-innerWidth * 1.1}px 0px`; el.style.rotate = '-25deg';
+    setTimeout(() => {
+      order = [i, ...order.filter(k => k !== i)];
+      el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout();
       el.offsetWidth; el.classList.remove('dragging');
-      requestAnimationFrame(() => { el.style.translate = ''; el.style.rotate = ''; });
-      after();
+      if (wasPlaying) toggle(order[order.length - 1]);
+    }, reduced ? 0 : 320);
+  }
+  function goBack(b, commit) {
+    const el = els[b], wasPlaying = !audio.paused;
+    el.classList.remove('dragging');
+    if (commit) {
+      hint.classList.add('gone');
+      order = [...order.slice(1), b];
+      el.style.translate = ''; el.style.rotate = ''; layout();
+      if (wasPlaying) toggle(b);
+    } else {
+      el.style.translate = `${-innerWidth * 1.1}px 0px`;
+      setTimeout(() => { el.classList.add('dragging'); el.style.translate = ''; el.style.rotate = ''; layout(); el.offsetWidth; el.classList.remove('dragging'); }, reduced ? 0 : 320);
     }
   }
 
