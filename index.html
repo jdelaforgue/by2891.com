@@ -248,7 +248,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     { img:'brick',      iw:512, ih:512, x:1330, y:230, w:580, rot:5,  z:1, song:{ src:'music/placeholder/ph2.mp3', title:'Placeholder 02', artist:'Brick' } },
     { img:'grass',      iw:512, ih:300, x:400,  y:860, w:760, rot:2,  z:1, song:{ src:'music/placeholder/ph3.mp3', title:'Placeholder 03', artist:'Grass' } },
     { img:'gravel',     iw:512, ih:380, x:1340, y:830, w:600, rot:-6, z:2, song:{ src:'music/placeholder/ph4.mp3', title:'Placeholder 04', artist:'Gravel' } },
-    { img:'moon',       iw:500, ih:500, x:820,  y:250, w:470, rot:0,  z:2, song:{ src:'music/placeholder/ph5.mp3', title:'Placeholder 05', artist:'Moon' } },
+    { img:'moon',       iw:500, ih:500, x:820,  y:250, w:470, rot:0,  z:2, song:{ src:'music/princess-di.mp3', title:'Princess Di', artist:'' } },   // real song; picture still a placeholder
     { img:'motorcycle', iw:640, ih:460, x:820,  y:770, w:580, rot:3,  z:3, song:{ src:'music/placeholder/ph6.mp3', title:'Placeholder 06', artist:'Motorcycle' } },
     { img:'rocket',     iw:220, ih:427, x:640,  y:250, w:160, rot:-3, z:3, song:{ src:'music/placeholder/ph7.mp3', title:'Placeholder 07', artist:'Rocket' } },
     { img:'cameraman',  iw:410, ih:512, x:540,  y:520, w:320, rot:-7, z:4, song:{ src:'music/dec24.mp3', title:'December 24 (Feb Mix)', artist:'Earl Sweatshirt', explicit:true } },
@@ -316,7 +316,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   const els = PIECES.map((p, i) => {
     const b = document.createElement('button');
     b.className = 'piece'; b.type = 'button';
-    b.setAttribute('aria-label', `Play ${p.song.title} by ${p.song.artist}`);
+    b.setAttribute('aria-label', `Play ${p.song.title}` + (p.song.artist ? ` by ${p.song.artist}` : ''));
     const img = document.createElement('img'); img.alt = ''; img.decoding = 'async'; img.draggable = false;
     b.appendChild(img); canvas.appendChild(b);
     b.addEventListener('click', e => { if (e.detail === 0) toggle(i); });   // keyboard activation only
@@ -398,9 +398,9 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     label.innerHTML = '';
     const t = document.createElement('span'); t.textContent = s.title; label.appendChild(t);
     if (s.explicit) label.insertAdjacentHTML('beforeend', '<span class="x" aria-label="Explicit">E</span>');
-    const a = document.createElement('small'); a.textContent = s.artist; label.appendChild(a);
+    if (s.artist) { const a = document.createElement('small'); a.textContent = s.artist; label.appendChild(a); }
     if ('mediaSession' in navigator)
-      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.artist, album: 'by2891',
+      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.artist || 'by2891', album: 'by2891',
         artwork: [{ src: 'img/portrait-art.webp', sizes: '600x600', type: 'image/webp' }] });
   }
   function sync() {
