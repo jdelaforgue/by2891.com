@@ -54,7 +54,8 @@ body>*:not(.bg):not(.collage){position:relative; z-index:1}
 }
 .bg::after{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(0,0,0,.05), rgba(0,0,0,.55))}
 body:not([data-view="home"]) .bg{opacity:1; transition-delay:.25s}
-body[data-view="music"] .bg{opacity:0; transition-delay:0s}
+body[data-view="music"] .bg::before{filter:blur(22px) brightness(1.05) contrast(1.1)}
+body[data-view="music"] .bg::after{background:radial-gradient(ellipse at center, rgba(0,0,0,0), rgba(0,0,0,.4))}
 body.no-anim *, body.no-anim *::before{transition:none!important}
 
 button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent}
@@ -125,7 +126,7 @@ body[data-view="music"] .card.open .frame{opacity:0; visibility:hidden}
 
 /* ---------- music collage ---------- */
 .collage{
-  position:fixed; inset:0; z-index:2; overflow:hidden; background:#000; touch-action:none;
+  position:fixed; inset:0; z-index:2; overflow:hidden; background:transparent; touch-action:none;
   opacity:0; visibility:hidden; transition:opacity .6s ease, visibility 0s linear .6s;
 }
 body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opacity .7s ease .3s, visibility 0s}
@@ -137,12 +138,14 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
 .piece img{display:block; width:100%; height:100%; user-select:none; -webkit-user-drag:none}
 .piece:focus-visible{outline:2px dashed rgba(255,255,255,.8); outline-offset:6px}
 .collage.hover-on{cursor:pointer}
-.collage.has-playing .piece:not(.playing){filter:brightness(.42) grayscale(1)}
-.piece.playing{filter:drop-shadow(0 22px 34px rgba(0,0,0,.85)) brightness(1.08)}
-.piece.hover:not(.playing){filter:brightness(1.12)}
+/* pieces lift off the blurred portrait: a dark contact shadow plus a soft halo, and a little extra contrast */
+.piece{filter:drop-shadow(0 0 1px rgba(255,255,255,.55)) drop-shadow(0 6px 10px rgba(0,0,0,.7)) drop-shadow(0 18px 36px rgba(0,0,0,.55)) contrast(1.08)}
+.collage.has-playing .piece:not(.playing){filter:drop-shadow(0 6px 10px rgba(0,0,0,.6)) brightness(.45)}
+.piece.playing{filter:drop-shadow(0 0 1.5px rgba(255,255,255,.8)) drop-shadow(0 14px 22px rgba(0,0,0,.8)) drop-shadow(0 34px 60px rgba(0,0,0,.7)) contrast(1.1) brightness(1.08)}
+.piece.hover:not(.playing){filter:drop-shadow(0 0 1.5px rgba(255,255,255,.7)) drop-shadow(0 10px 16px rgba(0,0,0,.75)) drop-shadow(0 26px 46px rgba(0,0,0,.6)) contrast(1.08) brightness(1.1)}
 .mode-pile .piece{transition:transform .5s cubic-bezier(.2,.8,.2,1), filter .45s ease}
 .mode-pile .piece.dragging{transition:none}
-.mode-pile.has-playing .piece:not(.playing){filter:none}
+.mode-pile.has-playing .piece:not(.playing){filter:drop-shadow(0 6px 10px rgba(0,0,0,.7)) drop-shadow(0 18px 36px rgba(0,0,0,.55)) contrast(1.08)}
 
 /* pasted paper label with the song title */
 .label{
