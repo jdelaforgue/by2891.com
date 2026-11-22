@@ -244,19 +244,14 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   /* Collage. One entry per picture. x/y = center on a 1600x1000 wall, w = width on that wall, rot = tilt, z = stacking.
      song: the MP3 that plays when the picture is tapped. explicit: true shows the E badge. */
   const PIECES = [
-    { img:'juke',       iw:1298, ih:812, x:320, y:250, w:640, rot:-4, z:3, song:{ src:'music/juke.mp3', title:'JUKE', artist:'' } },
-    { img:'star',       iw:900, ih:866, x:1320, y:240, w:500, rot:8, z:3, song:{ src:'music/star.mp3', title:'*', artist:'' } },
-    { img:'love',       iw:1000, ih:667, x:350, y:760, w:560, rot:3, z:7, song:{ src:'music/love.mp3', title:'❤️', artist:'' } },
-    { img:'david',      iw:1000, ih:819, x:1300, y:640, w:540, rot:0, z:9, song:{ src:'music/set-in-stone.mp3', title:'Set In Stone', artist:'' } },
-    { img:'daphne',     iw:510, ih:1000, x:790, y:410, w:410, rot:0, z:7, song:{ src:'music/princess-di.mp3', title:'Princess Di', artist:'' } },
-    { img:'motorcycle', iw:640, ih:460, x:820,  y:770, w:580, rot:3,  z:3, song:{ src:'music/placeholder/ph6.mp3', title:'Placeholder 06', artist:'Motorcycle' } },
-    { img:'wheel',      iw:750, ih:1000, x:990, y:250, w:290, rot:4, z:5, song:{ src:'music/ezekiels-wheel.mp3', title:'Ezekiels Wheel', artist:'' } },
-    { img:'cameraman',  iw:410, ih:512, x:540,  y:520, w:320, rot:-7, z:4, song:{ src:'music/dec24.mp3', title:'December 24 (Feb Mix)', artist:'Earl Sweatshirt', explicit:true } },
-    { img:'astronaut',  iw:360, ih:420, x:1110, y:450, w:320, rot:6,  z:4, song:{ src:'music/bomb.mp3', title:'Bomb (Feb Mix)', artist:'Freddie Gibbs ft. Raekwon', explicit:true } },
-    { img:'cat',        iw:280, ih:300, x:180,  y:540, w:300, rot:-8, z:5, song:{ src:'music/placeholder/ph8.mp3', title:'Placeholder 08', artist:'Cat' } },
-    { img:'horse',      iw:377, ih:310, x:900,  y:600, w:330, rot:0,  z:5, song:{ src:'music/no-problem.mp3', title:'No Problem (Feb Mix)', artist:'Lil Scrappy', explicit:true } },
-    { img:'emmanuel',   iw:1100, ih:259, x:1000, y:860, w:720, rot:-2, z:8, song:{ src:'music/emmanuel.mp3', title:'EMMANUEL', artist:'' } },
-    { img:'statue',     iw:374, ih:565, x:1450, y:560, w:330, rot:0,  z:6, song:{ src:'music/robes.mp3', title:'Robes (Feb Mix)', artist:'Freddie Gibbs ft. Earl Sweatshirt', explicit:true } },
+    { img:'juke',       iw:1298, ih:812,  x:300,  y:230, w:500, rot:-4, z:2, song:{ src:'music/juke.mp3', title:'JUKE', artist:'' } },
+    { img:'love',       iw:1000, ih:667,  x:330,  y:640, w:520, rot:3,  z:3, song:{ src:'music/love.mp3', title:'❤️', artist:'' } },
+    { img:'southside',  iw:314,  ih:576,  x:640,  y:560, w:250, rot:-3, z:5, song:{ src:'music/south-side-raised.mp3', title:'South Side Raised', artist:'' } },
+    { img:'daphne',     iw:510,  ih:1000, x:820,  y:430, w:330, rot:0,  z:4, song:{ src:'music/princess-di.mp3', title:'Princess Di', artist:'' } },
+    { img:'wheel',      iw:750,  ih:1000, x:1060, y:300, w:280, rot:5,  z:3, song:{ src:'music/ezekiels-wheel.mp3', title:'Ezekiels Wheel', artist:'' } },
+    { img:'star',       iw:900,  ih:866,  x:1340, y:250, w:360, rot:8,  z:2, song:{ src:'music/star.mp3', title:'*', artist:'' } },
+    { img:'david',      iw:1000, ih:819,  x:1290, y:610, w:480, rot:0,  z:4, song:{ src:'music/set-in-stone.mp3', title:'Set In Stone', artist:'' } },
+    { img:'emmanuel',   iw:1100, ih:259,  x:940,  y:860, w:700, rot:-2, z:6, song:{ src:'music/emmanuel.mp3', title:'EMMANUEL', artist:'' } },
   ];
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -343,7 +338,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     const next = pileQuery.matches ? 'pile' : 'wall';
     if (next !== mode) { mode = next; root.classList.toggle('mode-pile', mode === 'pile'); root.classList.toggle('mode-wall', mode === 'wall'); }
     if (mode === 'wall') {
-      scale = Math.max(innerWidth / WALL_W, innerHeight / WALL_H);             // cover: fill the screen, crop the rim
+      scale = Math.min(innerWidth / WALL_W, innerHeight / WALL_H);             // fit: every piece stays fully on screen
       canvas.style.width = WALL_W + 'px'; canvas.style.height = WALL_H + 'px';
       canvas.style.transform = `scale(${scale}) translate(-50%, -50%)`;
       PIECES.forEach((p, i) => {
