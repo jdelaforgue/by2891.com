@@ -40,7 +40,7 @@ body{
   padding-top:env(safe-area-inset-top,0px);
 }
 body>*:not(.bg):not(.collage){position:relative; z-index:1}
-.top{z-index:6!important}
+.top{z-index:6!important; pointer-events:none}   /* only the Back button inside takes taps */
 
 /* blurred portrait backdrop, shown on every section except home */
 .bg{
@@ -159,6 +159,42 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
 .label{text-align:left; font-family:inherit; border:0}
 .x{display:inline-grid; place-items:center; width:1.05em; height:1.05em; margin-left:.4em; vertical-align:.08em;
   border-radius:.18em; background:#000; color:#f2f2f2; font-size:.62em; font-weight:700; line-height:1}
+/* turntable pitch fader: right = normal speed, slide left to slow down (chopped & screwed) */
+.pitch{
+  position:absolute; z-index:160; top:calc(.6rem + env(safe-area-inset-top,0px)); left:50%; transform:translateX(-50%);
+  width:min(26rem, calc(100vw - 9.5rem)); display:grid; grid-template-columns:1fr auto; align-items:center; gap:.75rem;
+  padding:.45rem .9rem .5rem; border-radius:6px; background:rgba(14,14,14,.82);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.55);
+  -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); touch-action:none;
+}
+@media (max-width:560px){.pitch{left:auto; right:max(12px, env(safe-area-inset-right,0px)); transform:none; width:calc(100vw - 7.5rem); padding-inline:.7rem; gap:.5rem}}
+.pitch-track{position:relative; height:2.1rem}
+.pitch-track::before{ /* tick marks like the printed scale on a deck */
+  content:""; position:absolute; left:10px; right:10px; top:2px; height:6px;
+  background:repeating-linear-gradient(to right, rgba(255,255,255,.35) 0 1px, transparent 1px calc(10% - .1px));
+}
+.pitch-track::after{content:""; position:absolute; right:9px; top:0; width:2px; height:10px; background:#f2f2f2}  /* zero mark */
+.pitch input{
+  position:absolute; inset:auto 0 0 0; width:100%; height:1.4rem; margin:0; background:none; -webkit-appearance:none; appearance:none; cursor:pointer;
+}
+.pitch input::-webkit-slider-runnable-track{height:4px; border-radius:2px; background:linear-gradient(#050505,#2a2a2a); box-shadow:inset 0 1px 2px #000, 0 1px 0 rgba(255,255,255,.08)}
+.pitch input::-moz-range-track{height:4px; border-radius:2px; background:linear-gradient(#050505,#2a2a2a); box-shadow:inset 0 1px 2px #000}
+.pitch input::-webkit-slider-thumb{
+  -webkit-appearance:none; width:20px; height:22px; margin-top:-9px; border-radius:2px; border:0;
+  background:linear-gradient(to right, #8c8c8c, #e8e8e8 30%, #bdbdbd 48%, #f4f4f4 52%, #cfcfcf 70%, #7a7a7a);
+  box-shadow:0 2px 5px rgba(0,0,0,.8), inset 0 0 0 1px rgba(0,0,0,.35);
+}
+.pitch input::-moz-range-thumb{
+  width:20px; height:22px; border-radius:2px; border:0;
+  background:linear-gradient(to right, #8c8c8c, #e8e8e8 30%, #bdbdbd 48%, #f4f4f4 52%, #cfcfcf 70%, #7a7a7a);
+  box-shadow:0 2px 5px rgba(0,0,0,.8);
+}
+.pitch input:focus-visible{outline:none}
+.pitch input:focus-visible::-webkit-slider-thumb{outline:2px solid #fff; outline-offset:2px}
+.pitch output{font-size:.8rem; color:#9a9a9a; font-variant-numeric:tabular-nums; min-width:3.6em; text-align:right; font-variation-settings:"opsz" 14,"wdth" 85}
+.pitch.slow output{color:#e0e0e0}
+.pitch.chop output{color:#ff8a8a}
+
 .hint{
   position:absolute; left:0; right:0; bottom:calc(1.25rem + env(safe-area-inset-bottom,0px)); text-align:center;
   color:#6d6d6d; font-size:.85rem; pointer-events:none; transition:opacity .6s ease; z-index:150;
@@ -238,6 +274,10 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
 <section class="collage" data-collage aria-label="Music: tap a picture to play its song">
   <div class="canvas" data-canvas></div>
   <button class="label" data-label type="button" aria-live="polite"></button>
+  <div class="pitch" data-pitch>
+    <div class="pitch-track"><input type="range" id="pitch" min="0.70" max="1" step="0.005" value="1" aria-label="Speed: slide left to slow down and screw the music"></div>
+    <output for="pitch" data-pitch-out>0%</output>
+  </div>
   <p class="hint" data-hint>Tap to play. Swipe left for the next one, right to go back.</p>
 </section>
 <audio data-audio preload="none"></audio>
@@ -414,7 +454,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     initAudio(); endFade();
     if (i === current) { audio.paused ? audio.play().catch(() => {}) : audio.pause(); return; }
     setGain(decks.indexOf(audio), 1);
-    audio.src = PIECES[i].song.src; audio.play().catch(() => {});
+    audio.src = PIECES[i].song.src; applyRate(audio); audio.play().catch(() => {});
     showSong(i);
   }
   function showSong(i) {                     // label, highlight and lock-screen info for piece i
@@ -455,11 +495,11 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     // near the end of the live song, start the next picture's song and crossfade into it
     d.addEventListener('timeupdate', () => {
       if (d !== audio || fading || d.paused || !isFinite(d.duration) || PIECES.length < 2) return;
-      const left = d.duration - d.currentTime, len = Math.min(XFADE, d.duration / 3);
+      const left = (d.duration - d.currentTime) / rate, len = Math.min(XFADE, d.duration / rate / 3);   // real seconds at the current speed
       if (left > len) return;
       const to = 1 - k, nextI = (current + 1) % PIECES.length, wasTop = order[order.length - 1] === current;
       fading = { from: k };
-      setGain(to, 0); decks[to].src = PIECES[nextI].song.src; decks[to].play().catch(() => {});
+      setGain(to, 0); decks[to].src = PIECES[nextI].song.src; applyRate(decks[to]); decks[to].play().catch(() => {});
       setGain(to, 1, left); setGain(k, 0, left);
       audio = decks[to];
       if (mode === 'pile' && wasTop) order = [...order.filter(x => x !== nextI), nextI];   // keep the playing picture on top
@@ -468,10 +508,38 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     });
   });
 
+  /* ----- chopped & screwed: the fader slows tempo and pitch together; the far-left end adds chops ----- */
+  const pitchIn = $('#pitch'), pitchOut = $('[data-pitch-out]'), pitchBox = $('[data-pitch]');
+  const CHOP_BELOW = 0.76;
+  let rate = 1, nextChop = 0;
+  function applyRate(d) {
+    d.preservesPitch = false; d.mozPreservesPitch = false; d.webkitPreservesPitch = false;   // let the pitch drop with the tempo
+    d.defaultPlaybackRate = rate; d.playbackRate = rate;
+  }
+  pitchIn.addEventListener('input', () => {
+    rate = +pitchIn.value;
+    decks.forEach(applyRate);
+    pitchOut.textContent = rate >= .999 ? '0%' : `−${Math.round((1 - rate) * 100)}%`;
+    pitchBox.classList.toggle('slow', rate < .999);
+    pitchBox.classList.toggle('chop', rate <= CHOP_BELOW);
+    if (rate <= CHOP_BELOW && !nextChop) nextChop = performance.now() + 2500;
+  });
+  ['pointerdown', 'touchstart'].forEach(t => pitchBox.addEventListener(t, e => e.stopPropagation(), { passive: true }));
+  // a chop: jump back a fraction of a second and repeat it, now and then twice, like a DJ catching the record
+  setInterval(() => {
+    if (rate > CHOP_BELOW || fading || audio.paused || !isFinite(audio.duration)) { if (rate > CHOP_BELOW) nextChop = 0; return; }
+    const now = performance.now();
+    if (now < nextChop) return;
+    const back = .45 + Math.random() * .35, d = audio;
+    d.currentTime = Math.max(0, d.currentTime - back);
+    if (Math.random() < .45) setTimeout(() => { if (d === audio && !d.paused) d.currentTime = Math.max(0, d.currentTime - back); }, back * 1000 / rate);
+    nextChop = now + 3500 + Math.random() * 4500;
+  }, 200);
+
   /* ----- pointer: tap anywhere on the wall; tap or swipe the top of the pile ----- */
   let drag = null, raf = 0;
   root.addEventListener('pointerdown', e => {
-    if (e.target.closest('.back, .label')) return;
+    if (e.target.closest('.back, .label, .pitch')) return;
     // pile: a swipe anywhere moves the top picture; a tap has to land on it
     const top = order[order.length - 1];
     const i = mode === 'pile' ? top : pieceAt(e.clientX, e.clientY);
