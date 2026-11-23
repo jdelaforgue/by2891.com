@@ -288,14 +288,14 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   /* Collage. One entry per picture. x/y = center on a 1600x1000 wall, w = width on that wall, rot = tilt, z = stacking.
      song: the MP3 that plays when the picture is tapped. explicit: true shows the E badge. */
   const PIECES = [
-    { img:'juke',       iw:1298, ih:812,  x:300,  y:230, w:500, rot:-4, z:2, song:{ src:'music/juke.mp3', title:'JUKE', artist:'' } },
-    { img:'love',       iw:1000, ih:667,  x:330,  y:640, w:520, rot:3,  z:3, song:{ src:'music/love.mp3', title:'❤️', artist:'' } },
-    { img:'southside',  iw:314,  ih:576,  x:640,  y:560, w:250, rot:-3, z:5, song:{ src:'music/south-side-raised.mp3', title:'South Side Raised', artist:'' } },
-    { img:'daphne',     iw:510,  ih:1000, x:820,  y:430, w:330, rot:0,  z:4, song:{ src:'music/princess-di.mp3', title:'Princess Di', artist:'' } },
-    { img:'wheel',      iw:750,  ih:1000, x:1060, y:300, w:280, rot:5,  z:3, song:{ src:'music/ezekiels-wheel.mp3', title:'Ezekiels Wheel', artist:'' } },
-    { img:'star',       iw:900,  ih:866,  x:1340, y:250, w:360, rot:8,  z:2, song:{ src:'music/star.mp3', title:'*', artist:'' } },
-    { img:'david',      iw:1000, ih:819,  x:1290, y:610, w:480, rot:0,  z:4, song:{ src:'music/set-in-stone.mp3', title:'Set In Stone', artist:'' } },
-    { img:'emmanuel',   iw:1100, ih:259,  x:940,  y:860, w:700, rot:-2, z:6, song:{ src:'music/emmanuel.mp3', title:'EMMANUEL', artist:'' } },
+    { img:'juke',       iw:1298, ih:812,  x:300,  y:230, w:500, rot:-4, z:2, bpm:84.0, beat0:0.0, song:{ src:'music/juke.mp3', title:'JUKE', artist:'' } },
+    { img:'love',       iw:1000, ih:667,  x:330,  y:640, w:520, rot:3,  z:3, bpm:83.684, beat0:0.662, song:{ src:'music/love.mp3', title:'❤️', artist:'' } },
+    { img:'southside',  iw:314,  ih:576,  x:640,  y:560, w:250, rot:-3, z:5, bpm:74.521, beat0:0.046, song:{ src:'music/south-side-raised.mp3', title:'South Side Raised', artist:'' } },
+    { img:'daphne',     iw:510,  ih:1000, x:820,  y:430, w:330, rot:0,  z:4, bpm:73.708, beat0:0.726, song:{ src:'music/princess-di.mp3', title:'Princess Di', artist:'' } },
+    { img:'wheel',      iw:750,  ih:1000, x:1060, y:300, w:280, rot:5,  z:3, bpm:67.002, beat0:0.877, song:{ src:'music/ezekiels-wheel.mp3', title:'Ezekiels Wheel', artist:'' } },
+    { img:'star',       iw:900,  ih:866,  x:1340, y:250, w:360, rot:8,  z:2, bpm:74.987, beat0:0.795, song:{ src:'music/star.mp3', title:'*', artist:'' } },
+    { img:'david',      iw:1000, ih:819,  x:1290, y:610, w:480, rot:0,  z:4, bpm:67.849, beat0:0.25, song:{ src:'music/set-in-stone.mp3', title:'Set In Stone', artist:'' } },
+    { img:'emmanuel',   iw:1100, ih:259,  x:940,  y:860, w:700, rot:-2, z:6, bpm:73.99, beat0:0.0, song:{ src:'music/emmanuel.mp3', title:'EMMANUEL', artist:'' } },
   ];
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -525,14 +525,33 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     if (rate <= CHOP_BELOW && !nextChop) nextChop = performance.now() + 2500;
   });
   ['pointerdown', 'touchstart'].forEach(t => pitchBox.addEventListener(t, e => e.stopPropagation(), { passive: true }));
-  // a chop: jump back a fraction of a second and repeat it, now and then twice, like a DJ catching the record
+  // a chop lands on the beat: wait for the next beat line in the song, then jump back exactly 1 or 2 beats
+  // (sometimes twice), so the repeat starts on a beat and the groove never slips. bpm/beat0 come from an offline beat analysis.
+  let chopping = false;
+  function chopOnBeat() {
+    const d = audio, p = PIECES[current];
+    if (!p || !p.bpm) return;
+    const beat = 60 / p.bpm, t = d.currentTime;
+    const nextBeat = p.beat0 + Math.ceil((t - p.beat0 + .02) / beat) * beat;    // media time of the next beat
+    const beats = Math.random() < .3 ? 2 : 1, repeats = Math.random() < .45 ? 2 : 1;
+    chopping = true;
+    let done = 0, target = nextBeat;
+    (function wait() {
+      if (d !== audio || d.paused || fading || rate > CHOP_BELOW) { chopping = false; return; }
+      if (d.currentTime >= target - .008) {
+        const late = d.currentTime - target;                         // keep whatever we overshot so the phase stays exact
+        d.currentTime = target - beats * beat + Math.max(0, late);
+        if (++done < repeats) { setTimeout(wait, 8); return; }   // same beat line again: repeat the chop
+        chopping = false; return;
+      }
+      setTimeout(wait, 8);
+    })();
+  }
   setInterval(() => {
-    if (rate > CHOP_BELOW || fading || audio.paused || !isFinite(audio.duration)) { if (rate > CHOP_BELOW) nextChop = 0; return; }
+    if (rate > CHOP_BELOW || fading || audio.paused || chopping || !isFinite(audio.duration)) { if (rate > CHOP_BELOW) nextChop = 0; return; }
     const now = performance.now();
     if (now < nextChop) return;
-    const back = .45 + Math.random() * .35, d = audio;
-    d.currentTime = Math.max(0, d.currentTime - back);
-    if (Math.random() < .45) setTimeout(() => { if (d === audio && !d.paused) d.currentTime = Math.max(0, d.currentTime - back); }, back * 1000 / rate);
+    chopOnBeat();
     nextChop = now + 3500 + Math.random() * 4500;
   }, 200);
 
