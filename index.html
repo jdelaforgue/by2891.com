@@ -241,6 +241,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   <p class="hint" data-hint>Tap to play. Swipe left for the next one, right to go back.</p>
 </section>
 <audio data-audio preload="none"></audio>
+<audio data-audio2 preload="none"></audio>
 
 <script>
 (() => {
@@ -302,7 +303,27 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
   }
 
   /* ---------- collage ---------- */
-  const audio = $('[data-audio]');
+  // two decks so one song can fade into the next; `audio` always points at the deck that's live
+  const decks = [$('[data-audio]'), $('[data-audio2]')];
+  let audio = decks[0];
+  const XFADE = 6;                       // seconds of overlap at the end of a song
+  let ctx = null, gains = [], fading = null;
+  function initAudio() {                 // Web Audio gain nodes: the only volume control iOS honors
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    try {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      gains = decks.map(d => { const g = ctx.createGain(); ctx.createMediaElementSource(d).connect(g).connect(ctx.destination); return g; });
+    } catch { ctx = null; gains = []; }
+  }
+  function setGain(i, v, at = 0) {
+    if (gains[i]) { const g = gains[i].gain, t = ctx.currentTime; g.cancelScheduledValues(t); if (at) { g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(v, t + at); } else g.setValueAtTime(v, t); }
+    else decks[i].volume = v;            // fallback without Web Audio
+  }
+  function endFade() {                   // stop the outgoing deck right away
+    if (!fading) return;
+    const { from } = fading; fading = null;
+    decks[from].pause(); decks[from].removeAttribute('src'); decks[from].load(); setGain(from, 1);
+  }
   const root = $('[data-collage]'), canvas = $('[data-canvas]'), label = $('[data-label]'), hint = $('[data-hint]');
   const WALL_W = 1600, WALL_H = 1000;
   const pileQuery = matchMedia('(max-width: 700px), (max-aspect-ratio: 4/5)');
@@ -390,9 +411,14 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
 
   /* ----- play / pause ----- */
   function toggle(i) {
+    initAudio(); endFade();
     if (i === current) { audio.paused ? audio.play().catch(() => {}) : audio.pause(); return; }
+    setGain(decks.indexOf(audio), 1);
+    audio.src = PIECES[i].song.src; audio.play().catch(() => {});
+    showSong(i);
+  }
+  function showSong(i) {                     // label, highlight and lock-screen info for piece i
     current = i; const s = PIECES[i].song;
-    audio.src = s.src; audio.play().catch(() => {});
     label.innerHTML = '';
     const t = document.createElement('span'); t.textContent = s.title; label.appendChild(t);
     if (s.explicit) label.insertAdjacentHTML('beforeend', '<span class="x" aria-label="Explicit">E</span>');
@@ -422,9 +448,25 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
     }
     label.style.setProperty('--lx', x + 'px'); label.style.setProperty('--ly', y + 'px');
   }
-  audio.addEventListener('play', sync);
-  audio.addEventListener('pause', sync);
-  audio.addEventListener('ended', sync);                 // no auto-advance: the picture just settles back
+  decks.forEach((d, k) => {
+    d.addEventListener('play', () => { if (d === audio) sync(); });
+    d.addEventListener('pause', () => { if (d === audio) sync(); });
+    d.addEventListener('ended', () => { if (d === audio) sync(); });
+    // near the end of the live song, start the next picture's song and crossfade into it
+    d.addEventListener('timeupdate', () => {
+      if (d !== audio || fading || d.paused || !isFinite(d.duration) || PIECES.length < 2) return;
+      const left = d.duration - d.currentTime, len = Math.min(XFADE, d.duration / 3);
+      if (left > len) return;
+      const to = 1 - k, nextI = (current + 1) % PIECES.length, wasTop = order[order.length - 1] === current;
+      fading = { from: k };
+      setGain(to, 0); decks[to].src = PIECES[nextI].song.src; decks[to].play().catch(() => {});
+      setGain(to, 1, left); setGain(k, 0, left);
+      audio = decks[to];
+      if (mode === 'pile' && wasTop) order = [...order.filter(x => x !== nextI), nextI];   // keep the playing picture on top
+      showSong(nextI); sync();
+      setTimeout(() => { if (fading && fading.from === k) endFade(); }, left * 1000 + 300);
+    });
+  });
 
   /* ----- pointer: tap anywhere on the wall; tap or swipe the top of the pile ----- */
   let drag = null, raf = 0;
@@ -522,7 +564,7 @@ body[data-view="music"] .collage{opacity:1; visibility:visible; transition:opaci
 
   if ('mediaSession' in navigator) {
     navigator.mediaSession.setActionHandler('play', () => audio.play());
-    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+    navigator.mediaSession.setActionHandler('pause', () => { endFade(); audio.pause(); });
   }
 })();
 </script>
